@@ -1,0 +1,125 @@
+version: "3.9"
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: taqueria-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-taqueria_db}
+      MYSQL_USER: ${MYSQL_USER:-taqueria}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - taqueria-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: taqueria-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - taqueria-network
+
+  auth-service:
+    build:
+      context: ../src/auth-service
+      dockerfile: ../../docker/auth/Dockerfile
+    container_name: taqueria-auth-service
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-taqueria_db}
+      DB_USER: ${MYSQL_USER:-taqueria}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8081:8081"
+    networks:
+      - taqueria-network
+
+  catalogo-service:
+    build:
+      context: ../src/catalogo-service
+      dockerfile: ../../docker/catalogo/Dockerfile
+    container_name: taqueria-catalogo-service
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-taqueria_db}
+      DB_USER: ${MYSQL_USER:-taqueria}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8082:8082"
+    networks:
+      - taqueria-network
+
+  pedidos-service:
+    build:
+      context: ../src/pedidos-service
+      dockerfile: ../../docker/pedidos/Dockerfile
+    container_name: taqueria-pedidos-service
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+      - catalogo-service
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-taqueria_db}
+      DB_USER: ${MYSQL_USER:-taqueria}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8083:8083"
+    networks:
+      - taqueria-network
+
+  pagos-service:
+    build:
+      context: ../src/pagos-service
+      dockerfile: ../../docker/pagos/Dockerfile
+    container_name: taqueria-pagos-service
+    restart: unless-stopped
+    depends_on:
+      - mysql
+      - redis
+      - pedidos-service
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-taqueria_db}
+      DB_USER: ${MYSQL_USER:-taqueria}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8084:8084"
+    networks:
+      - taqueria-network
+
+volumes:
+  mysql-data:
+
+networks:
+  taqueria-network:
+    driver: bridge
