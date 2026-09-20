@@ -15,6 +15,11 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-changeme}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - taqueria-network
 
@@ -24,6 +29,11 @@ services:
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     networks:
       - taqueria-network
 
@@ -34,8 +44,10 @@ services:
     container_name: taqueria-auth-service
     restart: unless-stopped
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -56,8 +68,10 @@ services:
     container_name: taqueria-catalogo-service
     restart: unless-stopped
     depends_on:
-      - mysql
-      - redis
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -78,9 +92,12 @@ services:
     container_name: taqueria-pedidos-service
     restart: unless-stopped
     depends_on:
-      - mysql
-      - redis
-      - catalogo-service
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      catalogo-service:
+        condition: service_started
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -101,9 +118,12 @@ services:
     container_name: taqueria-pagos-service
     restart: unless-stopped
     depends_on:
-      - mysql
-      - redis
-      - pedidos-service
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      pedidos-service:
+        condition: service_started
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
