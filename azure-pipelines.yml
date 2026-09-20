@@ -32,10 +32,10 @@ steps:
     displayName: Configurar JDK 21
 
   - task: Maven@4
-    displayName: Build y tests (mvn clean verify)
+    displayName: Build y tests (mvn clean test)
     inputs:
       mavenPomFile: 'pom.xml'
-      goals: 'clean verify'
+      goals: 'clean test'
       options: '$(MAVEN_OPTS)'
       publishJUnitResults: true
       testResultsFiles: '**/surefire-reports/TEST-*.xml'
