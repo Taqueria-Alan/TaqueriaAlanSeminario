@@ -49,7 +49,7 @@ stages:
               jdkVersionOption: '1.21'
               mavenVersionOption: 'Default'
 
-          - ${{ each svc in ['auth-service', 'catalogo-service', 'pedidos-service', 'pagos-service'] }}:
+          - ${{ each svc in ['auth-service','catalogo-service','pedidos-service','pagos-service'] }}:
               - task: CopyFiles@2
                 displayName: 'Copiar jar de ${{ svc }}'
                 inputs:
@@ -65,7 +65,7 @@ stages:
     dependsOn: Build
     condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
     jobs:
-      - ${{ each svc in ['auth-service', 'catalogo-service', 'pedidos-service', 'pagos-service'] }}:
+      - ${{ each svc in ['auth-service','catalogo-service','pedidos-service','pagos-service'] }}:
           - deployment: Deploy_${{ replace(svc, '-', '_') }}
             displayName: 'Deploy ${{ svc }}'
             environment: 'production'
