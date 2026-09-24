@@ -77,7 +77,7 @@ stages:
       - ${{ each svc in parameters.services }}:
           - deployment: Deploy_${{ replace(svc, '-', '_') }}
             displayName: 'Deploy ${{ svc }}'
-            environment: 'production'
+            environment: 'production-${{ svc }}'
             pool:
               vmImage: 'ubuntu-latest'
             strategy:
