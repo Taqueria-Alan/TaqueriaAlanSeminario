@@ -1,0 +1,18 @@
+.membresia {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .resultado {
+    max-width: 420px;
+  }
+
+  .estado {
+    font-weight: 600;
+    color: var(--mat-sys-error);
+
+    &.activa {
+      color: var(--mat-sys-primary);
+    }
+  }
+}

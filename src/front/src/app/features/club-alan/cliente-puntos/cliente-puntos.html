@@ -1,0 +1,19 @@
+<div class="cliente-puntos">
+  <app-cliente-search (clienteSeleccionado)="onClienteSeleccionado($event)" />
+
+  @if (loading) {
+    <app-loading-spinner message="Consultando saldo..." />
+  } @else if (buscado && puntos) {
+    <mat-card class="resultado">
+      <mat-card-content>
+        <p class="saldo">{{ puntos.puntos }} pts</p>
+        <p>{{ clienteSeleccionado?.nombre }} (cliente #{{ puntos.idCliente }})</p>
+        <p>
+          {{ puntos.miembroClub ? 'Es miembro de Club Alan' : 'No es miembro de Club Alan' }}
+        </p>
+      </mat-card-content>
+    </mat-card>
+  } @else if (buscado && !puntos) {
+    <p class="sin-resultado">No se encontro informacion de puntos para ese cliente.</p>
+  }
+</div>

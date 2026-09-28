@@ -1,0 +1,66 @@
+<div class="categoria-list">
+  <div class="toolbar">
+    <mat-button-toggle-group
+      [value]="filtro"
+      (change)="cambiarFiltro($event.value)"
+    >
+      <mat-button-toggle value="todas">Todas</mat-button-toggle>
+      <mat-button-toggle value="activas">Activas</mat-button-toggle>
+      <mat-button-toggle value="inactivas">Inactivas</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <a mat-flat-button color="primary" routerLink="nueva">
+      <mat-icon>add</mat-icon>
+      Nueva categoria
+    </a>
+  </div>
+
+  @if (loading) {
+    <app-loading-spinner message="Cargando categorias..." />
+  } @else if (categorias.length === 0) {
+    <app-empty-state icon="category" message="No hay categorias para este filtro" />
+  } @else {
+    <table mat-table [dataSource]="categorias" class="mat-elevation-z1">
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef>Nombre</th>
+        <td mat-cell *matCellDef="let categoria">{{ categoria.nombre }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="descripcion">
+        <th mat-header-cell *matHeaderCellDef>Descripcion</th>
+        <td mat-cell *matCellDef="let categoria">{{ categoria.descripcion || '-' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="activa">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let categoria">
+          {{ categoria.activa ? 'Activa' : 'Inactiva' }}
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let categoria">
+          <a
+            mat-icon-button
+            [routerLink]="[categoria.idCategoria]"
+            matTooltip="Editar"
+          >
+            <mat-icon>edit</mat-icon>
+          </a>
+          <button
+            mat-icon-button
+            [disabled]="!categoria.activa"
+            matTooltip="Desactivar"
+            (click)="desactivar(categoria)"
+          >
+            <mat-icon>block</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+      <tr mat-row *matRowDef="let row; columns: columnas"></tr>
+    </table>
+  }
+</div>

@@ -1,0 +1,21 @@
+.movimientos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  table {
+    width: 100%;
+  }
+
+  .negativo {
+    color: var(--mat-sys-error);
+  }
+
+  .chip-acumulacion {
+    background-color: var(--mat-sys-tertiary-container);
+  }
+
+  .chip-canje {
+    background-color: var(--mat-sys-error-container);
+  }
+}

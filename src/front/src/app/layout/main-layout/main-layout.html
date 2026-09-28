@@ -1,0 +1,61 @@
+<mat-sidenav-container class="layout">
+  <mat-sidenav mode="side" opened class="sidenav">
+    <div class="brand">
+      <mat-icon>storefront</mat-icon>
+      <span>Taqueria Alan</span>
+    </div>
+
+    <mat-nav-list>
+      <a
+        mat-list-item
+        routerLink="/catalogo/categorias"
+        routerLinkActive="active-link"
+        [routerLinkActiveOptions]="{ exact: false }"
+      >
+        <mat-icon matListItemIcon>menu_book</mat-icon>
+        <span matListItemTitle>Catalogo</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/catalogo/productos"
+        routerLinkActive="active-link"
+      >
+        <mat-icon matListItemIcon>lunch_dining</mat-icon>
+        <span matListItemTitle>Productos</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/club-alan/puntos"
+        routerLinkActive="active-link"
+      >
+        <mat-icon matListItemIcon>loyalty</mat-icon>
+        <span matListItemTitle>Puntos Club Alan</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/club-alan/movimientos"
+        routerLinkActive="active-link"
+      >
+        <mat-icon matListItemIcon>receipt_long</mat-icon>
+        <span matListItemTitle>Movimientos</span>
+      </a>
+      <a
+        mat-list-item
+        routerLink="/club-alan/membresia"
+        routerLinkActive="active-link"
+      >
+        <mat-icon matListItemIcon>card_membership</mat-icon>
+        <span matListItemTitle>Membresia</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content>
+    <mat-toolbar color="primary">
+      <span>Taqueria Alan</span>
+    </mat-toolbar>
+    <main class="contenido">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>

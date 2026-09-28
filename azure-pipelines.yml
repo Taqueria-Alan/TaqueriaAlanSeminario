@@ -19,6 +19,7 @@ parameters:
       - catalogo-service
       - pedidos-service
       - pagos-service
+      - club-alan-service
 
 variables:
   MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository
