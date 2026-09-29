@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { finalize } from 'rxjs';
 import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
@@ -19,7 +19,10 @@ export class ClientePuntosComponent {
   clienteSeleccionado: ClienteBusqueda | null = null;
   puntos: PuntosResponse | null = null;
 
-  constructor(private readonly clubAlanService: ClubAlanService) {}
+  constructor(
+    private readonly clubAlanService: ClubAlanService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   onClienteSeleccionado(cliente: ClienteBusqueda): void {
     this.clienteSeleccionado = cliente;
@@ -29,10 +32,21 @@ export class ClientePuntosComponent {
 
     this.clubAlanService
       .obtenerPuntos(cliente.idCliente)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe({
-        next: (puntos) => (this.puntos = puntos),
-        error: () => (this.puntos = null),
+        next: (puntos) => {
+          this.puntos = puntos;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.puntos = null;
+          this.cdr.markForCheck();
+        },
       });
   }
 }

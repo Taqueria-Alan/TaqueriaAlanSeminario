@@ -1,0 +1,133 @@
+<main id="top">
+  <section class="hero">
+    <div class="hero__pattern" aria-hidden="true"></div>
+
+    <div class="hero__inner">
+      <header class="hero__topbar">
+        <a class="brand" href="#top">
+          <span class="brand__emblem">
+            <img src="images/logo-alan.png" alt="Logotipo Taqueria Alan" />
+          </span>
+          <span class="brand__name">
+            Taquería <strong>Alan</strong>
+            <small>Guatemala</small>
+          </span>
+        </a>
+
+        <nav class="hero__meta" aria-label="Información de contacto">
+          <a class="meta-item" [href]="telefonoHref">
+            <span class="material-symbols-outlined">call</span>
+            <span>
+              <small>Reservas</small>
+              {{ telefono }}
+            </span>
+          </a>
+          <span class="meta-item meta-item--static">
+            <span class="material-symbols-outlined">location_on</span>
+            <span>
+              <small>Ciudad de Guatemala</small>
+              Altos de Bárcenas 1
+            </span>
+          </span>
+          <span class="meta-item meta-item--static">
+            <span class="material-symbols-outlined">local_fire_department</span>
+            <span>
+              <small>100% Mexicano</small>
+              0% Tex-Mex
+            </span>
+          </span>
+        </nav>
+      </header>
+
+      <div class="hero__content">
+        <h1>La auténtica taquería mexicana, ya en Guatemala</h1>
+
+        <div class="hero__divider">
+          <span>Reserva ahorita · {{ telefono }}</span>
+        </div>
+
+        <div class="hero__actions">
+          <a class="btn btn--primary" href="#menu">
+            <span class="material-symbols-outlined">restaurant_menu</span>
+            Ver menú
+          </a>
+        </div>
+      </div>
+
+      <div class="hero__plate" aria-hidden="true">
+        <img src="images/logo-alan.png" alt="" />
+      </div>
+    </div>
+  </section>
+
+  <section id="menu" class="menu">
+    <h2>Nuestro menú</h2>
+    <p class="menu__subtitle">Tortillas hechas al momento, sabor 100% mexicano</p>
+
+    <div class="menu__grid">
+      <article class="menu-card" *ngFor="let categoria of menu">
+        <header class="menu-card__header">
+          <span class="material-symbols-outlined">{{ categoria.icono }}</span>
+          <h3>{{ categoria.titulo }}</h3>
+        </header>
+
+        <ul class="menu-card__list">
+          <li *ngFor="let item of categoria.items">
+            <div>
+              <span class="menu-card__nombre">{{ item.nombre }}</span>
+              <span class="menu-card__detalle">{{ item.detalle }}</span>
+            </div>
+            <span class="menu-card__precio">{{ item.precio }}</span>
+          </li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="info">
+    <div class="info-card">
+      <div class="info-card__brand">
+        <span class="brand__emblem brand__emblem--lg" aria-hidden="true">
+          <img src="images/logo-alan.png" alt="" />
+        </span>
+        <div>
+          <h2>Taquería Alan</h2>
+          <p>{{ telefono }}</p>
+        </div>
+      </div>
+
+      <ul class="info-card__details">
+        <li>
+          <span class="material-symbols-outlined">schedule</span>
+          <span>Abierto <strong>{{ horario }}</strong></span>
+        </li>
+        <li>
+          <span class="material-symbols-outlined">location_on</span>
+          <span>{{ direccion }}</span>
+        </li>
+        <li>
+          <span class="material-symbols-outlined">storefront</span>
+          <span>Tacos, gringas, tortillas de harina y tortas mexicanas</span>
+        </li>
+      </ul>
+
+      <div class="info-card__actions">
+        <a class="btn btn--whatsapp" [href]="whatsappHref" target="_blank" rel="noopener">
+          <span class="material-symbols-outlined">chat</span>
+          WhatsApp
+        </a>
+        <a class="btn btn--ghost" [href]="mapaHref" target="_blank" rel="noopener">
+          <span class="material-symbols-outlined">near_me</span>
+          Cómo llegar
+        </a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span class="brand__emblem brand__emblem--sm" aria-hidden="true">
+    <img src="images/logo-alan.png" alt="" />
+  </span>
+  <p>&copy; {{ anioActual }} Taquería Alan · Ciudad de Guatemala</p>
+</footer>

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -43,6 +43,7 @@ export class CategoriaFormComponent implements OnInit {
     private readonly notificationService: NotificationService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   get esEdicion(): boolean {
@@ -59,13 +60,19 @@ export class CategoriaFormComponent implements OnInit {
     this.loading = true;
     this.categoriaService
       .obtenerPorId(this.idCategoria)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe((categoria) => {
         this.form.patchValue({
           nombre: categoria.nombre,
           descripcion: categoria.descripcion,
           activa: categoria.activa,
         });
+        this.cdr.markForCheck();
       });
   }
 
@@ -86,11 +93,18 @@ export class CategoriaFormComponent implements OnInit {
       ? this.categoriaService.actualizar(this.idCategoria!, request)
       : this.categoriaService.crear(request);
 
-    accion.pipe(finalize(() => (this.guardando = false))).subscribe(() => {
+    accion
+      .pipe(
+        finalize(() => {
+          this.guardando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe(() => {
       this.notificationService.success(
         this.esEdicion ? 'Categoria actualizada' : 'Categoria creada',
       );
-      this.router.navigate(['/catalogo/categorias']);
+      this.router.navigate(['/admin/catalogo/categorias']);
     });
   }
 }

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
@@ -37,7 +37,10 @@ export class MovimientosListComponent {
 
   readonly columnas = ['tipo', 'puntos', 'fecha', 'descripcion'];
 
-  constructor(private readonly clubAlanService: ClubAlanService) {}
+  constructor(
+    private readonly clubAlanService: ClubAlanService,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   onClienteSeleccionado(cliente: ClienteBusqueda): void {
     this.clienteSeleccionado = cliente;
@@ -60,10 +63,16 @@ export class MovimientosListComponent {
     this.loading = true;
     this.clubAlanService
       .listarMovimientos(this.clienteSeleccionado.idCliente, this.pageIndex, this.pageSize)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe((pagina) => {
         this.movimientos = pagina.content;
         this.totalElements = pagina.totalElements;
+        this.cdr.markForCheck();
       });
   }
 }

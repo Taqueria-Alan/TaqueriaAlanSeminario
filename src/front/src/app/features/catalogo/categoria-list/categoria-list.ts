@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
@@ -47,6 +47,7 @@ export class CategoriaListComponent implements OnInit {
     private readonly categoriaService: CategoriaService,
     private readonly notificationService: NotificationService,
     private readonly dialog: MatDialog,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -58,8 +59,16 @@ export class CategoriaListComponent implements OnInit {
     const activa = this.filtro === 'todas' ? undefined : this.filtro === 'activas';
     this.categoriaService
       .listar(activa)
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe((categorias) => (this.categorias = categorias));
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe((categorias) => {
+        this.categorias = categorias;
+        this.cdr.markForCheck();
+      });
   }
 
   cambiarFiltro(filtro: FiltroActiva): void {

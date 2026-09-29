@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -39,6 +39,7 @@ export class MembresiaComponent {
     private readonly clubAlanService: ClubAlanService,
     private readonly notificationService: NotificationService,
     private readonly dialog: MatDialog,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   onClienteSeleccionado(cliente: ClienteBusqueda): void {
@@ -54,10 +55,16 @@ export class MembresiaComponent {
     this.procesando = true;
     this.clubAlanService
       .activarMembresia(this.clienteSeleccionado.idCliente)
-      .pipe(finalize(() => (this.procesando = false)))
+      .pipe(
+        finalize(() => {
+          this.procesando = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe((membresia) => {
         this.membresia = membresia;
         this.notificationService.success('Membresia activada correctamente');
+        this.cdr.markForCheck();
       });
   }
 
@@ -82,7 +89,12 @@ export class MembresiaComponent {
         this.procesando = true;
         this.clubAlanService
           .cancelarMembresia(this.clienteSeleccionado.idCliente)
-          .pipe(finalize(() => (this.procesando = false)))
+          .pipe(
+            finalize(() => {
+              this.procesando = false;
+              this.cdr.markForCheck();
+            }),
+          )
           .subscribe(() => {
             this.notificationService.success('Membresia cancelada');
             this.consultar();
@@ -101,10 +113,21 @@ export class MembresiaComponent {
 
     this.clubAlanService
       .obtenerMembresia(this.clienteSeleccionado.idCliente)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe({
-        next: (membresia) => (this.membresia = membresia),
-        error: () => (this.membresia = null),
+        next: (membresia) => {
+          this.membresia = membresia;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.membresia = null;
+          this.cdr.markForCheck();
+        },
       });
   }
 }

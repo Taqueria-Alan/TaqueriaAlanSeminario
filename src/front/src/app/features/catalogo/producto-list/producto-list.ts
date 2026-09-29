@@ -1,5 +1,5 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -65,12 +65,14 @@ export class ProductoListComponent implements OnInit {
     private readonly categoriaService: CategoriaService,
     private readonly notificationService: NotificationService,
     private readonly dialog: MatDialog,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.categoriaService.listar().subscribe((categorias) => {
       this.categorias = categorias;
       this.categoriaPorId = new Map(categorias.map((c) => [c.idCategoria, c.nombre]));
+      this.cdr.markForCheck();
     });
     this.cargar();
   }
@@ -82,16 +84,32 @@ export class ProductoListComponent implements OnInit {
 
     this.productoService
       .listar(idCategoria, disponible)
-      .pipe(finalize(() => (this.loading = false)))
-      .subscribe((productos) => (this.productos = productos));
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe((productos) => {
+        this.productos = productos;
+        this.cdr.markForCheck();
+      });
   }
 
   cargarConCategoria(): void {
     this.loadingConCategoria = true;
     this.productoService
       .listarConCategoria()
-      .pipe(finalize(() => (this.loadingConCategoria = false)))
-      .subscribe((productos) => (this.productosConCategoria = productos));
+      .pipe(
+        finalize(() => {
+          this.loadingConCategoria = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe((productos) => {
+        this.productosConCategoria = productos;
+        this.cdr.markForCheck();
+      });
   }
 
   nombreCategoria(idCategoria: number): string {
@@ -104,6 +122,7 @@ export class ProductoListComponent implements OnInit {
       .subscribe((actualizado) => {
         producto.disponible = actualizado.disponible;
         this.notificationService.success('Disponibilidad actualizada');
+        this.cdr.markForCheck();
       });
   }
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -51,6 +51,7 @@ export class ProductoFormComponent implements OnInit {
     private readonly notificationService: NotificationService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   get esEdicion(): boolean {
@@ -58,7 +59,10 @@ export class ProductoFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.categoriaService.listar(true).subscribe((categorias) => (this.categorias = categorias));
+    this.categoriaService.listar(true).subscribe((categorias) => {
+      this.categorias = categorias;
+      this.cdr.markForCheck();
+    });
 
     const idParam = this.route.snapshot.paramMap.get('id');
     if (!idParam) {
@@ -69,7 +73,12 @@ export class ProductoFormComponent implements OnInit {
     this.loading = true;
     this.productoService
       .obtenerPorId(this.idProducto)
-      .pipe(finalize(() => (this.loading = false)))
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.cdr.markForCheck();
+        }),
+      )
       .subscribe((producto) => {
         this.form.patchValue({
           idCategoria: producto.idCategoria,
@@ -78,6 +87,7 @@ export class ProductoFormComponent implements OnInit {
           precio: producto.precio,
           disponible: producto.disponible,
         });
+        this.cdr.markForCheck();
       });
   }
 
@@ -100,9 +110,16 @@ export class ProductoFormComponent implements OnInit {
       ? this.productoService.actualizar(this.idProducto!, request)
       : this.productoService.crear(request);
 
-    accion.pipe(finalize(() => (this.guardando = false))).subscribe(() => {
-      this.notificationService.success(this.esEdicion ? 'Producto actualizado' : 'Producto creado');
-      this.router.navigate(['/catalogo/productos']);
-    });
+    accion
+      .pipe(
+        finalize(() => {
+          this.guardando = false;
+          this.cdr.markForCheck();
+        }),
+      )
+      .subscribe(() => {
+        this.notificationService.success(this.esEdicion ? 'Producto actualizado' : 'Producto creado');
+        this.router.navigate(['/admin/catalogo/productos']);
+      });
   }
 }

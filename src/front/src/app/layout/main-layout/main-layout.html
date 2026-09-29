@@ -1,14 +1,22 @@
 <mat-sidenav-container class="layout">
-  <mat-sidenav mode="side" opened class="sidenav">
-    <div class="brand">
-      <mat-icon>storefront</mat-icon>
-      <span>Taqueria Alan</span>
-    </div>
+  <mat-sidenav
+    #drawer
+    [mode]="isHandset() ? 'over' : 'side'"
+    [opened]="!isHandset()"
+    class="sidenav"
+  >
+    <a class="brand" href="/" title="Ver sitio publico">
+      <img class="brand__logo" src="images/logo-alan.png" alt="Logotipo Taqueria Alan" />
+      <span class="brand__text">
+        Taqueria Alan
+        <small>Panel administrativo</small>
+      </span>
+    </a>
 
-    <mat-nav-list>
+    <mat-nav-list (click)="drawer.mode === 'over' && drawer.close()">
       <a
         mat-list-item
-        routerLink="/catalogo/categorias"
+        routerLink="/admin/catalogo/categorias"
         routerLinkActive="active-link"
         [routerLinkActiveOptions]="{ exact: false }"
       >
@@ -17,7 +25,7 @@
       </a>
       <a
         mat-list-item
-        routerLink="/catalogo/productos"
+        routerLink="/admin/catalogo/productos"
         routerLinkActive="active-link"
       >
         <mat-icon matListItemIcon>lunch_dining</mat-icon>
@@ -25,7 +33,7 @@
       </a>
       <a
         mat-list-item
-        routerLink="/club-alan/puntos"
+        routerLink="/admin/club-alan/puntos"
         routerLinkActive="active-link"
       >
         <mat-icon matListItemIcon>loyalty</mat-icon>
@@ -33,7 +41,7 @@
       </a>
       <a
         mat-list-item
-        routerLink="/club-alan/movimientos"
+        routerLink="/admin/club-alan/movimientos"
         routerLinkActive="active-link"
       >
         <mat-icon matListItemIcon>receipt_long</mat-icon>
@@ -41,7 +49,7 @@
       </a>
       <a
         mat-list-item
-        routerLink="/club-alan/membresia"
+        routerLink="/admin/club-alan/membresia"
         routerLinkActive="active-link"
       >
         <mat-icon matListItemIcon>card_membership</mat-icon>
@@ -51,7 +59,13 @@
   </mat-sidenav>
 
   <mat-sidenav-content>
-    <mat-toolbar color="primary">
+    <mat-toolbar class="app-toolbar">
+      @if (isHandset()) {
+        <button mat-icon-button (click)="drawer.toggle()" aria-label="Abrir menu">
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+      <img class="app-toolbar__logo" src="images/logo-alan.png" alt="" />
       <span>Taqueria Alan</span>
     </mat-toolbar>
     <main class="contenido">

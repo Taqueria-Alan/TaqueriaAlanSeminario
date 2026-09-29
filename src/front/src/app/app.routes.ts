@@ -4,6 +4,10 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout';
 export const routes: Routes = [
   {
     path: '',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.LandingComponent),
+  },
+  {
+    path: 'admin',
     component: MainLayoutComponent,
     children: [
       { path: '', redirectTo: 'catalogo', pathMatch: 'full' },
