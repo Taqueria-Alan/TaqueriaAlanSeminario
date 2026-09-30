@@ -38,13 +38,11 @@ pipeline {
                       exit 1
                     }
                 '''
-                withCredentials([
-                    string(credentialsId: 'taqueria-mysql-root', variable: 'MYSQL_ROOT_PASSWORD'),
-                    string(credentialsId: 'taqueria-mysql-user', variable: 'MYSQL_PASSWORD')
-                ]) {
-                    sh '''
+                sh '''
                         set -eu
                         export IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}"
+                        # CI usa la configuración efímera no productiva definida por Docker Compose.
+                        # Las credenciales de producción nunca se incluyen en este pipeline.
                         export MYSQL_DATABASE=taqueria_db MYSQL_USER=taqueria
                         export MYSQL_PORT=13306 REDIS_PORT=16379
                         export SERVICE_PORT_8081=18081 SERVICE_PORT_8082=18082
@@ -74,8 +72,7 @@ pipeline {
                         mkdir -p reports
                         python -m pytest tests/ --junitxml=reports/pytest.xml \
                           --html=reports/report.html --self-contained-html
-                    '''
-                }
+                '''
             }
             post {
                 always {
@@ -109,18 +106,13 @@ pipeline {
                 }
             }
             steps {
-                withCredentials([
-                    string(credentialsId: 'taqueria-mysql-root', variable: 'MYSQL_ROOT_PASSWORD'),
-                    string(credentialsId: 'taqueria-mysql-user', variable: 'MYSQL_PASSWORD')
-                ]) {
-                    sh '''
+                sh '''
                         set -eu
                         export IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}"
                         export MYSQL_DATABASE=taqueria_db MYSQL_USER=taqueria
                         docker compose -p taqueria-staging -f docker/docker-compose.yml up -d --no-build
                         docker compose -p taqueria-staging -f docker/docker-compose.yml ps
-                    '''
-                }
+                '''
             }
         }
     }
