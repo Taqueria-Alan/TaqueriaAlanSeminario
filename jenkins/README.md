@@ -35,9 +35,24 @@ En Manage Jenkins > Credentials crea dos **Secret text**:
 No pegues esos valores en el Jenkinsfile ni en el repositorio. Al usar un volumen
 MySQL existente, conserva exactamente las contraseñas con que se inicializó.
 
-Crea un **Multibranch Pipeline** con GitHub Branch Source para
-`MadelinRobles2/TaqueriaAlanSeminario`; script path `Jenkinsfile`.
-Un push a main ejecuta el deploy solamente después de pasar QA.
+Crea un Pipeline con Git para `MadelinRobles2/TaqueriaAlanSeminario`; script
+path `Jenkinsfile`. Para un repositorio privado, registra una credencial de
+GitHub de solo lectura y asígnala al SCM del job.
+
+## Flujo de ramas y responsabilidades
+
+- `dev`: los colaboradores implementan cambios y reciben integración continua.
+- `QA`: rama de validación; después de Build y Test aprobados, el Jenkinsfile
+  despliega al entorno de staging.
+- `main`: queda reservada para la administradora del repositorio y la
+  implementación a producción. El colaborador no modifica ni despliega esta
+  rama desde Jenkins.
+
+El usuario `ChernandezU` opera como colaborador técnico de `dev` y `QA`; no
+necesita ni solicita privilegios de administración del repositorio. Para el
+clonado del repositorio privado se utiliza un token personal de la cuenta del
+colaborador con acceso de lectura al repositorio; no se almacena en Git.
+
 Para recibir webhooks desde GitHub, publica Jenkins mediante una URL HTTPS
 alcanzable y configura `https://TU_URL/github-webhook/`. La URL local
 http://localhost:9090 no es accesible desde GitHub.
