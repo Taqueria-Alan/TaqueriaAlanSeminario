@@ -1,10 +1,7 @@
-version: "3.9"
-
 services:
 
   mysql:
     image: mysql:8.0
-    container_name: taqueria-mysql
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
@@ -12,7 +9,7 @@ services:
       MYSQL_USER: ${MYSQL_USER:-taqueria}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      - "127.0.0.1:${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
@@ -25,10 +22,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: taqueria-redis
     restart: unless-stopped
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -38,10 +34,10 @@ services:
       - taqueria-network
 
   auth-service:
+    image: taqueria/auth:${IMAGE_TAG:-local}
     build:
       context: ../src/auth-service
       dockerfile: ../../docker/auth/Dockerfile
-    container_name: taqueria-auth-service
     restart: unless-stopped
     depends_on:
       mysql:
@@ -56,16 +52,17 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
     ports:
-      - "8081:8081"
+      - "${SERVICE_PORT_8081:-8081}:8081"
     networks:
       - taqueria-network
 
   catalogo-service:
+    image: taqueria/catalogo:${IMAGE_TAG:-local}
     build:
       context: ../src/catalogo-service
       dockerfile: ../../docker/catalogo/Dockerfile
-    container_name: taqueria-catalogo-service
     restart: unless-stopped
     depends_on:
       mysql:
@@ -80,16 +77,17 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
     ports:
-      - "8082:8082"
+      - "${SERVICE_PORT_8082:-8082}:8082"
     networks:
       - taqueria-network
 
   pedidos-service:
+    image: taqueria/pedidos:${IMAGE_TAG:-local}
     build:
       context: ../src/pedidos-service
       dockerfile: ../../docker/pedidos/Dockerfile
-    container_name: taqueria-pedidos-service
     restart: unless-stopped
     depends_on:
       mysql:
@@ -106,16 +104,17 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
     ports:
-      - "8083:8083"
+      - "${SERVICE_PORT_8083:-8083}:8083"
     networks:
       - taqueria-network
 
   pagos-service:
+    image: taqueria/pagos:${IMAGE_TAG:-local}
     build:
       context: ../src/pagos-service
       dockerfile: ../../docker/pagos/Dockerfile
-    container_name: taqueria-pagos-service
     restart: unless-stopped
     depends_on:
       mysql:
@@ -132,8 +131,9 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
     ports:
-      - "8084:8084"
+      - "${SERVICE_PORT_8084:-8084}:8084"
     networks:
       - taqueria-network
 
