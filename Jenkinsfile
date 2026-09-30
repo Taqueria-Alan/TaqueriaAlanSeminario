@@ -100,7 +100,7 @@ pipeline {
                 allOf {
                     expression {
                         def branchName = sh(
-                            script: 'git branch --show-current',
+                            script: "git name-rev --name-only HEAD | sed 's#^remotes/origin/##'",
                             returnStdout: true
                         ).trim()
                         return branchName.equalsIgnoreCase('QA')
