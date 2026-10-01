@@ -85,6 +85,17 @@ stages:
               runOnce:
                 deploy:
                   steps:
+                    - bash: |
+                        echo "Contenido de $(Pipeline.Workspace)/${{ svc }}-jar/:"
+                        ls -la "$(Pipeline.Workspace)/${{ svc }}-jar/" || true
+                        JAR_COUNT=$(find "$(Pipeline.Workspace)/${{ svc }}-jar/" -name '*.jar' | wc -l)
+                        echo "Jars encontrados: $JAR_COUNT"
+                        if [ "$JAR_COUNT" -eq "0" ]; then
+                          echo "##vso[task.logissue type=error]No se encontro ningun .jar para ${{ svc }} antes de desplegar."
+                          exit 1
+                        fi
+                      displayName: 'Verificar artefacto de ${{ svc }} antes de desplegar'
+
                     - task: AzureWebApp@1
                       displayName: 'Publicar ${{ svc }} en App Service'
                       inputs:
