@@ -4,10 +4,10 @@
 -- Incluye las tablas MEMBRESIA y TIPO_PEDIDO del diagrama ER.
 -- =====================================================================
 
-CREATE DATABASE IF NOT EXISTS TaqueriaAlanDB
+CREATE DATABASE IF NOT EXISTS taqueria_db
   CHARACTER SET utf8mb4;
 
-USE TaqueriaAlanDB;
+USE taqueria_db;
 
 -- ---------------------------------------------------------------------
 -- TABLAS
