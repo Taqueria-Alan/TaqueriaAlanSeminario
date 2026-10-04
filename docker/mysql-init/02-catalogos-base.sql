@@ -15,10 +15,12 @@
 --   TIPO_PEDIDO.id_tipo_pedido = 1    'Normal'
 --   TIPO_PEDIDO.id_tipo_pedido = 2    'Suscripción Club Alan'
 --   CATEGORIA.id_categoria     = 100  'Servicios'          (productos que no son comida)
---   PRODUCTO.id_producto       = 100  'Membresía Club Alan' (lo que vende la suscripcion)
+--   PRODUCTO.id_producto       = 1    'Membresía Club Alan' (lo que vende la suscripcion)
 --
--- Los ids 100 estan reservados para filas del sistema: el AUTO_INCREMENT de
--- CATEGORIA y PRODUCTO continuara desde 101 si estas tablas estaban vacias.
+-- El id 100 de CATEGORIA esta reservado para filas del sistema: el
+-- AUTO_INCREMENT de CATEGORIA continuara desde 101 si la tabla estaba vacia.
+-- PRODUCTO usa el id 1 (el primero de la tabla), asi que su AUTO_INCREMENT
+-- continuara desde 2 para el resto del catalogo (tacos, gringas, etc.).
 -- El front busca la categoria por nombre ('Servicios') y el producto por nombre
 -- ('Club Alan' o 'Membresía'), asi que coincide con estas filas.
 --
@@ -39,7 +41,7 @@ USE taqueria_db;
 SET @ID_TIPO_NORMAL        = 1;
 SET @ID_TIPO_SUSCRIPCION   = 2;
 SET @ID_CATEGORIA_SERVICIOS = 100;
-SET @ID_PRODUCTO_CLUB      = 100;
+SET @ID_PRODUCTO_CLUB      = 1;
 
 SET @TIPO_NORMAL           = 'Normal';
 SET @TIPO_SUSCRIPCION      = 'Suscripción Club Alan';
@@ -47,7 +49,7 @@ SET @CATEGORIA_SERVICIOS   = 'Servicios';
 SET @PRODUCTO_CLUB         = 'Membresía Club Alan';
 
 -- Precio inicial de la membresia (valor de ejemplo; se cambia luego desde el panel Menu).
-SET @PRECIO_CLUB           = 50.00;
+SET @PRECIO_CLUB           = 10.00;
 
 -- Primer administrador. IMPORTANTE: el hash corresponde a la contrasena de
 -- demostracion 'Admin1234' (BCrypt). Reemplazalo por el hash de una contrasena
