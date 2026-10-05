@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <name>Taqueria Alan Seminario</name>
-    <description>Proyecto Spring Boot basado en microservicios (auth, catalogo, pedidos, pagos, club-alan)</description>
+    <description>Proyecto Spring Boot basado en microservicios (auth, catalogo, pedidos, pagos)</description>
 
     <properties>
         <java.version>21</java.version>
@@ -21,6 +21,5 @@
         <module>src/catalogo-service</module>
         <module>src/pedidos-service</module>
         <module>src/pagos-service</module>
-        <module>src/club-alan-service</module>
     </modules>
 </project>

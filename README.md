@@ -3,8 +3,7 @@
 Repositorio del proyecto **Transformación Digital de Taquería Alan**: marketplace propio de pedidos en línea y programa de membresía ("Club Alan") para reducir la dependencia de comisiones de plataformas de delivery de terceros.
 
 Proyecto Spring Boot organizado en microservicios (**auth**, **catalogo**,
-**pedidos**, **pagos**, **club-alan**), con MySQL y Redis como infraestructura compartida,
-mas un frontend Angular en `src/front`.
+**pedidos**, **pagos**), con MySQL y Redis como infraestructura compartida. 
 
 Universidad Mariano Gálvez de Guatemala — Seminario.
 
@@ -25,15 +24,12 @@ Universidad Mariano Gálvez de Guatemala — Seminario.
 │   ├── auth-service/
 │   ├── catalogo-service/
 │   ├── pedidos-service/
-│   ├── pagos-service/
-│   ├── club-alan-service/
-│   └── front/              # Frontend Angular
+│   └── pagos-service/
 ├── docker/                 # Dockerfiles por microservicio + docker-compose
 │   ├── auth/Dockerfile
 │   ├── catalogo/Dockerfile
 │   ├── pedidos/Dockerfile
 │   ├── pagos/Dockerfile
-│   ├── club-alan/Dockerfile
 │   └── docker-compose.yml
 ├── docs/                   # Documentacion (arquitectura, API, datos)
 └── tests/                  # Pruebas de integracion y end-to-end
@@ -45,7 +41,7 @@ Maven: `src/main/java`, `src/main/resources`, `src/test/java`, con paquetes
 
 ## Infraestructura (Docker)
 
-- **MySQL 8** — una unica base de datos compartida por los microservicios.
+- **MySQL 8** — una unica base de datos (`taqueria_db`) compartida por los cuatro microservicios.
 - **Redis 7** — cache compartida.
 
 ## Como levantar el entorno
@@ -62,7 +58,6 @@ docker compose up --build
 | catalogo-service   | 8082   |
 | pedidos-service    | 8083   |
 | pagos-service      | 8084   |
-| club-alan-service  | 8085   |
 | MySQL              | 3306   |
 | Redis              | 6379   |
 

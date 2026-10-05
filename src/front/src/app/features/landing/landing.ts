@@ -1,74 +1,39 @@
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
-
-interface MenuItem {
-  nombre: string;
-  detalle: string;
-  precio: string;
-}
-
-interface MenuCategoria {
-  titulo: string;
-  icono: string;
-  items: MenuItem[];
-}
+import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { ConfiguracionService } from '../../core/config/configuracion.service';
+import { MENU_ESTATICO, MenuCategoria } from '../../core/data/menu.data';
 
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [RouterLink],
   templateUrl: './landing.html',
   styleUrl: './landing.scss',
 })
 export class LandingComponent {
   readonly anioActual = new Date().getFullYear();
-  readonly telefono = '+502 5875 6425';
-  readonly telefonoHref = 'tel:+50258756425';
-  readonly whatsappHref = 'https://wa.me/50258756425';
-  readonly direccion = 'Altos de Bárcenas 1, Cdad. de Guatemala 00502, Guatemala';
-  readonly mapaHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    'Taqueria Alan, Altos de Bárcenas 1, Cdad. de Guatemala',
-  )}`;
-  readonly horario = '7:00 p. m. – 10:00 p. m.';
+  private readonly configuracion = inject(ConfiguracionService);
 
-  readonly menu: MenuCategoria[] = [
+  readonly config = this.configuracion.config;
+  readonly telefonoHref = this.configuracion.telefonoHref;
+  readonly whatsappHref = this.configuracion.whatsappHref;
+  readonly mapaHref = this.configuracion.mapaHref;
+
+  readonly carnes = ['Pastor', 'Pollo', 'Chorizo', 'Longaniza', 'Res', 'Adobado'];
+  readonly menu: MenuCategoria[] = MENU_ESTATICO;
+
+  readonly pasos = [
     {
-      titulo: 'Tacos',
-      icono: 'lunch_dining',
-      items: [
-        { nombre: '3 Tacos', detalle: 'Pastor, pollo, chorizo, longaniza o 2 carnes', precio: 'Q18' },
-        { nombre: '3 Tacos', detalle: 'Res y adobado', precio: 'Q24' },
-        { nombre: '4 Tacos', detalle: 'Pastor, pollo, chorizo, longaniza o 2 carnes', precio: 'Q24' },
-        { nombre: '4 Tacos', detalle: 'Res y adobado', precio: 'Q30' },
-      ],
+      titulo: 'Crea tu cuenta',
+      texto: 'Regístrate con tu nombre, teléfono y correo en menos de un minuto.',
     },
     {
-      titulo: 'Gringas',
-      icono: 'flatware',
-      items: [
-        { nombre: 'Pequeña', detalle: 'Pastor, pollo, chorizo, longaniza o 2 carnes', precio: 'Q12' },
-        { nombre: 'Super', detalle: 'Res, adobado o mixto', precio: 'Q24' },
-        { nombre: 'Jumbo', detalle: 'Res, adobado o mixto', precio: 'Q40' },
-        { nombre: 'Porción de 3 pequeñas', detalle: 'Res, adobado o mixto', precio: 'Q40' },
-      ],
+      titulo: 'Arma tu pedido',
+      texto: 'Elige tacos, gringas, tortillas o tortas, y la carne que se te antoje.',
     },
     {
-      titulo: 'Tortillas de harina',
-      icono: 'bakery_dining',
-      items: [
-        { nombre: 'Pequeña', detalle: 'Pastor, pollo, chorizo, longaniza o 2 carnes', precio: 'Q18' },
-        { nombre: 'Normal', detalle: 'Res, adobado o mixto', precio: 'Q30' },
-        { nombre: 'Gigante', detalle: 'Res, adobado o mixto', precio: 'Q40' },
-      ],
-    },
-    {
-      titulo: 'Tortas y hamburguesas',
-      icono: 'kebab_dining',
-      items: [
-        { nombre: 'Torta de embutidos', detalle: 'Pan horneado, guarniciones frescas', precio: 'Q18' },
-        { nombre: 'Torta de carne especial', detalle: 'Pan horneado, guarniciones frescas', precio: 'Q25' },
-        { nombre: 'Hamburguesa', detalle: 'Carne especial de la casa', precio: 'Q16' },
-      ],
+      titulo: 'Recoge o recibe',
+      texto: 'Sigue el estado de tu pedido en tiempo real, desde que entra a la plancha.',
     },
   ];
 }
