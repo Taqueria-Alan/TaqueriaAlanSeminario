@@ -1,0 +1,81 @@
+<div class="resumen">
+  <header class="head">
+    <div>
+      <h2>Resumen de hoy</h2>
+      <p>{{ fecha }}</p>
+    </div>
+    <a class="alan-btn alan-btn--green" routerLink="/admin/catalogo/productos/nuevo">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>Nuevo producto
+    </a>
+  </header>
+
+  <section class="kpis">
+    <div class="kpi kpi--mustard"><span>Ventas del día</span><b>Q{{ ventas() }}</b></div>
+    <div class="kpi kpi--chile"><span>Pedidos</span><b>{{ cantidad() }}</b></div>
+    <div class="kpi kpi--green"><span>Ticket promedio</span><b>Q{{ ticket().toFixed(2) }}</b></div>
+    <div class="kpi kpi--ink"><span>En curso</span><b>{{ enCurso() }}</b></div>
+  </section>
+
+  <section class="row">
+    <div class="card card--grow">
+      <div class="card__head"><h3>Ventas por hora</h3><small>Quetzales · hora pico en rojo</small></div>
+      <div class="chart" role="img" aria-label="Ventas por hora del día">
+        @for (b of barras(); track b.etiqueta) {
+          <div class="chart__col">
+            <span class="chart__val">{{ b.valor || '' }}</span>
+            <div class="chart__bar" [class.chart__bar--peak]="b.pico" [style.height.px]="b.alto"></div>
+            <span class="chart__hour">{{ b.etiqueta }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Más vendidos</h3>
+      @for (t of masVendidos(); track t.nombre + t.detalle) {
+        <div class="top">
+          <div class="top__row">
+            <span><b>{{ t.nombre }}</b><small>{{ t.detalle }}</small></span>
+            <b>{{ t.unidades }}</b>
+          </div>
+          <div class="top__track"><div class="top__fill" [style.width.%]="t.ancho"></div></div>
+        </div>
+      } @empty {
+        <p class="muted">Aún no hay ventas hoy.</p>
+      }
+    </div>
+  </section>
+
+  <section class="live">
+    <div class="live__head">
+      <h3>Pedidos en vivo</h3>
+      <small>Usa el botón de cada pedido para avanzarlo</small>
+    </div>
+    <div class="cols">
+      @for (c of columnas(); track c.estado) {
+        <div class="col">
+          <div class="col__title col__title--{{ c.estado.toLowerCase() }}">
+            <span>{{ c.titulo }}</span><b>{{ c.pedidos.length }}</b>
+          </div>
+          @for (p of c.pedidos; track p.id) {
+            <article class="order">
+              <div class="order__top"><b>#{{ p.id }}</b><small>{{ hora(p.creadoEn) }}</small></div>
+              <b>{{ p.cliente }}</b>
+              <p>{{ resumen(p.lineas) }}</p>
+              @if (p.direccion) {
+                <small class="order__addr">{{ p.direccion }}</small>
+              }
+              <div class="order__foot">
+                <span class="order__tag">{{ tipoDe(p) }}</span>
+                <b>Q{{ p.total }}</b>
+              </div>
+              <button type="button" class="order__btn order__btn--{{ c.estado.toLowerCase() }}" (click)="avanzar(p.id)">{{ accionDe(p) }}</button>
+            </article>
+          } @empty {
+            <p class="muted col__empty">Sin pedidos</p>
+          }
+        </div>
+      }
+    </div>
+  </section>
+</div>

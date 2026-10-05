@@ -1,15 +1,6 @@
 import { DecimalPipe } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTableModule } from '@angular/material/table';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -17,119 +8,99 @@ import {
   ConfirmDialog,
   ConfirmDialogData,
 } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
 import { Categoria } from '../models/categoria.model';
-import { Producto, ProductoConCategoria } from '../models/producto.model';
+import { Producto } from '../models/producto.model';
 import { CategoriaService } from '../services/categoria.service';
 import { ProductoService } from '../services/producto.service';
 
+type FiltroDisponible = 'todos' | 'si' | 'no';
+
+/** Menu del negocio: lista de productos con filtros, disponibilidad y acciones. */
 @Component({
   selector: 'app-producto-list',
   standalone: true,
-  imports: [
-    RouterLink,
-    ReactiveFormsModule,
-    DecimalPipe,
-    MatTableModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatTabsModule,
-    LoadingSpinner,
-    EmptyState,
-  ],
+  imports: [RouterLink, DecimalPipe],
   templateUrl: './producto-list.html',
   styleUrl: './producto-list.scss',
 })
 export class ProductoListComponent implements OnInit {
-  productos: Producto[] = [];
-  productosConCategoria: ProductoConCategoria[] = [];
-  categorias: Categoria[] = [];
-  categoriaPorId = new Map<number, string>();
+  private readonly productoService = inject(ProductoService);
+  private readonly categoriaService = inject(CategoriaService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
 
-  loading = false;
-  loadingConCategoria = false;
+  readonly productos = signal<Producto[]>([]);
+  readonly categorias = signal<Categoria[]>([]);
+  readonly cargando = signal(false);
 
-  readonly filtroCategoria = new FormControl<number | null>(null);
-  readonly filtroDisponible = new FormControl<boolean | null>(null);
+  readonly categoriaSeleccionada = signal<number | null>(null);
+  readonly disponibilidad = signal<FiltroDisponible>('todos');
+  readonly busqueda = signal('');
 
-  readonly columnas = ['nombre', 'categoria', 'precio', 'disponible', 'acciones'];
-  readonly columnasConCategoria = ['nombre', 'nombreCategoria', 'precio', 'disponible'];
+  readonly disponibilidades: { valor: FiltroDisponible; etiqueta: string }[] = [
+    { valor: 'todos', etiqueta: 'Todos' },
+    { valor: 'si', etiqueta: 'Disponibles' },
+    { valor: 'no', etiqueta: 'No disponibles' },
+  ];
 
-  constructor(
-    private readonly productoService: ProductoService,
-    private readonly categoriaService: CategoriaService,
-    private readonly notificationService: NotificationService,
-    private readonly dialog: MatDialog,
-    private readonly cdr: ChangeDetectorRef,
-  ) {}
+  private readonly nombresCategoria = computed(
+    () => new Map(this.categorias().map((c) => [c.idCategoria, c.nombre])),
+  );
+
+  readonly chipsCategoria = computed(() => [
+    { id: null as number | null, nombre: 'Todas', cantidad: this.productos().length },
+    ...this.categorias().map((c) => ({
+      id: c.idCategoria as number | null,
+      nombre: c.nombre,
+      cantidad: this.productos().filter((p) => p.idCategoria === c.idCategoria).length,
+    })),
+  ]);
+
+  readonly visibles = computed(() => {
+    const categoria = this.categoriaSeleccionada();
+    const disponibilidad = this.disponibilidad();
+    const texto = this.busqueda().trim().toLowerCase();
+    return this.productos().filter(
+      (p) =>
+        (categoria === null || p.idCategoria === categoria) &&
+        (disponibilidad === 'todos' || p.disponible === (disponibilidad === 'si')) &&
+        (!texto || p.nombre.toLowerCase().includes(texto) || (p.descripcion ?? '').toLowerCase().includes(texto)),
+    );
+  });
 
   ngOnInit(): void {
-    this.categoriaService.listar().subscribe((categorias) => {
-      this.categorias = categorias;
-      this.categoriaPorId = new Map(categorias.map((c) => [c.idCategoria, c.nombre]));
-      this.cdr.markForCheck();
-    });
+    this.categoriaService.listar().subscribe((categorias) => this.categorias.set(categorias));
     this.cargar();
   }
 
   cargar(): void {
-    this.loading = true;
-    const idCategoria = this.filtroCategoria.value ?? undefined;
-    const disponible = this.filtroDisponible.value ?? undefined;
-
+    this.cargando.set(true);
     this.productoService
-      .listar(idCategoria, disponible)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        }),
-      )
-      .subscribe((productos) => {
-        this.productos = productos;
-        this.cdr.markForCheck();
-      });
-  }
-
-  cargarConCategoria(): void {
-    this.loadingConCategoria = true;
-    this.productoService
-      .listarConCategoria()
-      .pipe(
-        finalize(() => {
-          this.loadingConCategoria = false;
-          this.cdr.markForCheck();
-        }),
-      )
-      .subscribe((productos) => {
-        this.productosConCategoria = productos;
-        this.cdr.markForCheck();
-      });
+      .listar()
+      .pipe(finalize(() => this.cargando.set(false)))
+      .subscribe((productos) => this.productos.set(productos));
   }
 
   nombreCategoria(idCategoria: number): string {
-    return this.categoriaPorId.get(idCategoria) ?? `#${idCategoria}`;
+    return this.nombresCategoria().get(idCategoria) ?? `#${idCategoria}`;
   }
 
-  cambiarDisponibilidad(producto: Producto, disponible: boolean): void {
-    this.productoService
-      .actualizarDisponibilidad(producto.idProducto, disponible)
-      .subscribe((actualizado) => {
-        producto.disponible = actualizado.disponible;
-        this.notificationService.success('Disponibilidad actualizada');
-        this.cdr.markForCheck();
-      });
+  cambiarDisponibilidad(producto: Producto): void {
+    const disponible = !producto.disponible;
+    this.productoService.actualizarDisponibilidad(producto.idProducto, disponible).subscribe((actualizado) => {
+      this.productos.update((lista) =>
+        lista.map((p) => (p.idProducto === actualizado.idProducto ? { ...p, disponible: actualizado.disponible } : p)),
+      );
+      this.notificationService.success(
+        actualizado.disponible ? `"${producto.nombre}" disponible` : `"${producto.nombre}" pausado`,
+      );
+    });
   }
 
   eliminar(producto: Producto): void {
     const data: ConfirmDialogData = {
       title: 'Eliminar producto',
-      message: `Seguro que deseas eliminar "${producto.nombre}"?`,
+      message: `¿Seguro que deseas eliminar "${producto.nombre}"?`,
       confirmText: 'Eliminar',
     };
 
@@ -145,11 +116,5 @@ export class ProductoListComponent implements OnInit {
           this.cargar();
         });
       });
-  }
-
-  onTabChange(index: number): void {
-    if (index === 1 && this.productosConCategoria.length === 0) {
-      this.cargarConCategoria();
-    }
   }
 }

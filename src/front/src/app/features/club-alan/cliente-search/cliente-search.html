@@ -1,23 +1,31 @@
-<mat-form-field appearance="outline" class="cliente-search" floatLabel="always">
-  <mat-label>Buscar cliente por nombre o telefono</mat-label>
+<label class="adm-search cliente-search">
+  <span class="material-symbols-outlined" aria-hidden="true">search</span>
   <input
-    matInput
+    type="search"
+    autocomplete="off"
     [formControl]="control"
     [matAutocomplete]="auto"
-    placeholder="Ej. Juan Perez o 5021234567"
+    placeholder="Buscar cliente por nombre o teléfono"
+    aria-label="Buscar cliente por nombre o teléfono"
   />
-  <mat-icon matSuffix>search</mat-icon>
   <mat-autocomplete
     #auto="matAutocomplete"
+    class="cliente-search__panel"
     [displayWith]="mostrarCliente"
     (optionSelected)="onOpcionSeleccionada($event)"
   >
-    @for (cliente of (opciones$ | async); track cliente.idCliente) {
+    @for (cliente of opciones$ | async; track cliente.idCliente) {
       <mat-option [value]="cliente">
-        {{ cliente.nombre }} @if (cliente.telefono) {
-          <span class="telefono">({{ cliente.telefono }})</span>
-        }
+        <span class="opcion">
+          <span class="opcion__nombre">{{ cliente.nombre }}</span>
+          @if (cliente.telefono) {
+            <small>{{ cliente.telefono }}</small>
+          }
+          <span class="adm-tag" [class.adm-tag--green]="cliente.miembroClub">
+            {{ cliente.miembroClub ? 'Miembro' : 'Sin membresía' }} · {{ cliente.puntos }} pts
+          </span>
+        </span>
       </mat-option>
     }
   </mat-autocomplete>
-</mat-form-field>
+</label>

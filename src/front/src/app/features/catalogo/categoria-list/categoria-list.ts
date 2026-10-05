@@ -1,11 +1,5 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -13,8 +7,6 @@ import {
   ConfirmDialog,
   ConfirmDialogData,
 } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
 import { Categoria } from '../models/categoria.model';
 import { CategoriaService } from '../services/categoria.service';
 
@@ -23,63 +15,47 @@ type FiltroActiva = 'todas' | 'activas' | 'inactivas';
 @Component({
   selector: 'app-categoria-list',
   standalone: true,
-  imports: [
-    RouterLink,
-    MatTableModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatSlideToggleModule,
-    LoadingSpinner,
-    EmptyState,
-  ],
+  imports: [RouterLink],
   templateUrl: './categoria-list.html',
   styleUrl: './categoria-list.scss',
 })
 export class CategoriaListComponent implements OnInit {
-  categorias: Categoria[] = [];
-  loading = false;
-  filtro: FiltroActiva = 'todas';
-  readonly columnas = ['nombre', 'descripcion', 'activa', 'acciones'];
+  private readonly categoriaService = inject(CategoriaService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
 
-  constructor(
-    private readonly categoriaService: CategoriaService,
-    private readonly notificationService: NotificationService,
-    private readonly dialog: MatDialog,
-    private readonly cdr: ChangeDetectorRef,
-  ) {}
+  readonly categorias = signal<Categoria[]>([]);
+  readonly cargando = signal(false);
+  readonly filtro = signal<FiltroActiva>('todas');
+
+  readonly filtros: { valor: FiltroActiva; etiqueta: string }[] = [
+    { valor: 'todas', etiqueta: 'Todas' },
+    { valor: 'activas', etiqueta: 'Activas' },
+    { valor: 'inactivas', etiqueta: 'Inactivas' },
+  ];
 
   ngOnInit(): void {
     this.cargar();
   }
 
   cargar(): void {
-    this.loading = true;
-    const activa = this.filtro === 'todas' ? undefined : this.filtro === 'activas';
+    this.cargando.set(true);
+    const activa = this.filtro() === 'todas' ? undefined : this.filtro() === 'activas';
     this.categoriaService
       .listar(activa)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        }),
-      )
-      .subscribe((categorias) => {
-        this.categorias = categorias;
-        this.cdr.markForCheck();
-      });
+      .pipe(finalize(() => this.cargando.set(false)))
+      .subscribe((categorias) => this.categorias.set(categorias));
   }
 
   cambiarFiltro(filtro: FiltroActiva): void {
-    this.filtro = filtro;
+    this.filtro.set(filtro);
     this.cargar();
   }
 
   desactivar(categoria: Categoria): void {
     const data: ConfirmDialogData = {
-      title: 'Desactivar categoria',
-      message: `Seguro que deseas desactivar "${categoria.nombre}"? Si tiene productos asociados no se eliminara, solo se marcara como inactiva.`,
+      title: 'Desactivar categoría',
+      message: `¿Seguro que deseas desactivar "${categoria.nombre}"? Si tiene productos asociados no se eliminará, solo se marcará como inactiva.`,
       confirmText: 'Desactivar',
     };
 
@@ -91,7 +67,7 @@ export class CategoriaListComponent implements OnInit {
           return;
         }
         this.categoriaService.eliminar(categoria.idCategoria).subscribe(() => {
-          this.notificationService.success('Categoria actualizada correctamente');
+          this.notificationService.success('Categoría actualizada correctamente');
           this.cargar();
         });
       });

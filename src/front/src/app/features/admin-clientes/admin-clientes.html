@@ -1,0 +1,100 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Clientes</h2>
+      <p>Todos los clientes registrados. Selecciona uno para ver su ficha: puntos, membresía y últimos movimientos.</p>
+    </div>
+  </header>
+
+  <div class="adm-split">
+    <section class="adm-card adm-main">
+      <label class="adm-search">
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input type="search" placeholder="Buscar por nombre o teléfono" aria-label="Buscar cliente" [formControl]="busqueda" />
+      </label>
+
+      @if (cargandoLista()) {
+        <p class="adm-empty">Cargando clientes…</p>
+      } @else {
+        <div class="adm-table">
+          <div class="adm-table__inner" style="--cols: minmax(0, 2fr) 120px minmax(0, 1.6fr) 90px 120px 110px">
+            <div class="adm-row adm-row--head">
+              <span>Nombre</span><span>Teléfono</span><span>Email</span><span>Puntos</span><span>Club Alan</span><span></span>
+            </div>
+            @for (c of clientes(); track c.idCliente) {
+              <div class="adm-row" [class.is-active]="cliente()?.idCliente === c.idCliente">
+                <b>{{ c.nombre }}</b>
+                <span>{{ c.telefono || '—' }}</span>
+                <span>{{ c.email || '—' }}</span>
+                <span>{{ c.puntosClubAlan }}</span>
+                <span class="adm-tag" [class.adm-tag--green]="c.miembroClub">{{ c.miembroClub ? 'Miembro' : 'No miembro' }}</span>
+                <button type="button" class="adm-chip" (click)="seleccionar(c)">Ver ficha</button>
+              </div>
+            } @empty {
+              <p class="adm-empty">No se encontraron clientes.</p>
+            }
+          </div>
+        </div>
+
+        <mat-paginator
+          [length]="totalElements()"
+          [pageIndex]="pageIndex()"
+          [pageSize]="pageSize()"
+          [pageSizeOptions]="[10, 20, 50]"
+          (page)="cambiarPagina($event)"
+        />
+      }
+    </section>
+
+    <aside class="adm-side ficha">
+      @if (cargando()) {
+        <div class="adm-card"><p class="adm-empty">Cargando ficha…</p></div>
+      } @else if (ficha(); as f) {
+        <section class="adm-card profile">
+          <span class="profile__avatar" aria-hidden="true">{{ iniciales() }}</span>
+          <div class="profile__who">
+            <h3>{{ cliente()?.nombre }}</h3>
+            <p>Cliente #{{ cliente()?.idCliente }}@if (cliente()?.telefono) { · {{ cliente()?.telefono }} }</p>
+          </div>
+          <span class="adm-tag" [class.adm-tag--green]="f.membresia?.activa" [class.adm-tag--chile]="f.membresia && !f.membresia.activa">
+            {{ f.membresia ? (f.membresia.activa ? 'Miembro Club Alan' : 'Membresía inactiva') : 'Sin membresía' }}
+          </span>
+        </section>
+
+        <section class="adm-kpis">
+          <div class="adm-kpi"><span>Puntos</span><b>{{ f.puntos?.puntos ?? '—' }}</b></div>
+          <div class="adm-kpi"><span>Membresía</span><b class="small">{{ f.membresia?.activa ? 'Activa' : 'No activa' }}</b></div>
+          <div class="adm-kpi"><span>Envío gratis</span><b class="small">{{ f.membresia?.activa && f.membresia.envioGratis ? 'Sí' : 'No' }}</b></div>
+          <div class="adm-kpi"><span>Miembro desde</span><b class="small">{{ f.membresia ? (f.membresia.fechaInicio | date: 'd MMM y') : '—' }}</b></div>
+        </section>
+
+        <section class="adm-card">
+          <div class="head">
+            <h3>Últimos movimientos</h3>
+            <div class="adm-chips">
+              <button type="button" class="adm-chip" (click)="irA('movimientos')">Ver historial completo</button>
+              <button type="button" class="adm-chip" (click)="irA('membresia')">Gestionar membresía</button>
+            </div>
+          </div>
+          <div class="adm-table">
+            <div class="adm-table__inner" style="--cols: 130px 90px 160px minmax(0, 1fr)">
+              <div class="adm-row adm-row--head"><span>Tipo</span><span>Puntos</span><span>Fecha</span><span>Descripción</span></div>
+              @for (m of f.movimientos; track m.idMovimiento) {
+                <div class="adm-row">
+                  <span class="adm-tag" [class.adm-tag--green]="m.tipo === 'ACUMULACION'" [class.adm-tag--chile]="m.tipo === 'CANJE'">{{ m.tipo === 'CANJE' ? 'Canje' : 'Acumulación' }}</span>
+                  <b [class.neg]="m.puntos < 0">{{ m.puntos > 0 ? '+' : '' }}{{ m.puntos }}</b>
+                  <span>{{ m.fecha | date: 'd MMM y, HH:mm' }}</span>
+                  <span>{{ m.descripcion || '—' }}</span>
+                </div>
+              } @empty {
+                <p class="adm-empty">Este cliente aún no tiene movimientos.</p>
+              }
+            </div>
+          </div>
+        </section>
+      } @else {
+        <div class="adm-card"><p class="adm-empty">Selecciona un cliente de la lista para ver su ficha.</p></div>
+      }
+    </aside>
+  </div>
+</div>

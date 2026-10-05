@@ -1,0 +1,36 @@
+<div class="shell">
+  <aside class="side">
+    <a class="side__brand" routerLink="/" title="Ver sitio público">
+      <span class="alan-emblem side__emblem"><img src="images/logo-alan.png" alt="Logotipo Taquería Alan" /></span>
+      <span class="side__name">TAQUERÍA<br />ALAN</span>
+    </a>
+
+    <nav class="side__nav" aria-label="Panel de cliente">
+      <a routerLink="/cliente" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="material-symbols-outlined" aria-hidden="true">home</span>Inicio
+      </a>
+      <a routerLink="/cliente/pedir" routerLinkActive="is-active">
+        <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>Hacer pedido
+      </a>
+    </nav>
+
+    <div class="side__user">
+      @if (usuario(); as u) {
+        <div class="side__me">
+          <span class="side__avatar">{{ iniciales() }}</span>
+          <div>
+            <b>{{ u.nombre }} {{ u.apellido }}</b>
+            <small>Cliente</small>
+          </div>
+        </div>
+      }
+      <button type="button" class="side__logout" (click)="cerrarSesion()">
+        <span class="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <router-outlet />
+  </main>
+</div>

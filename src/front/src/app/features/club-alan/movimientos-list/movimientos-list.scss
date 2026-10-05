@@ -1,21 +1,7 @@
-.movimientos-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.neg {
+  color: var(--alan-chile-dark);
+}
 
-  table {
-    width: 100%;
-  }
-
-  .negativo {
-    color: var(--mat-sys-error);
-  }
-
-  .chip-acumulacion {
-    background-color: var(--mat-sys-tertiary-container);
-  }
-
-  .chip-canje {
-    background-color: var(--mat-sys-error-container);
-  }
+mat-paginator {
+  --mat-paginator-container-background-color: transparent;
 }

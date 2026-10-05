@@ -1,7 +1,7 @@
-$color-ink: #3a2a1a;
-$color-ink-dark: #241a10;
-$color-yellow: #f7b91a;
-$color-cream: #fff8e6;
+$color-ink: var(--alan-ink-2);
+$color-ink-dark: var(--alan-ink);
+$color-yellow: var(--alan-mustard);
+$color-cream: var(--alan-cream);
 
 .layout {
   height: 100vh;
@@ -53,6 +53,7 @@ $color-cream: #fff8e6;
     padding-top: 8px;
 
     --mat-list-list-item-label-text-color: #{$color-cream};
+    --mat-list-list-item-trailing-supporting-text-color: #fff;
     --mat-list-list-item-hover-label-text-color: #{$color-cream};
     --mat-list-list-item-focus-label-text-color: #{$color-cream};
     --mat-list-list-item-leading-icon-color: #{$color-yellow};
@@ -62,11 +63,47 @@ $color-cream: #fff8e6;
   }
 
   .active-link {
-    background-color: rgba(247, 185, 26, 0.16);
+    background-color: rgba(244, 184, 46, 0.2);
   }
 }
 
+.nav-label {
+  padding: 16px 24px 4px;
+  color: rgba(255, 244, 220, 0.55);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.badge {
+  min-width: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--alan-chile);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.logout-link {
+  --mat-list-list-item-label-text-color: #ffb4a8;
+  --mat-list-list-item-hover-label-text-color: #ffb4a8;
+  --mat-list-list-item-leading-icon-color: #ffb4a8;
+  --mat-list-list-item-hover-leading-icon-color: #ffb4a8;
+}
+
 .app-toolbar {
+  .spacer {
+    flex: 1;
+  }
+
+  &__user {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
   background: $color-ink;
   color: $color-cream;
   gap: 12px;
@@ -80,5 +117,9 @@ $color-cream: #fff8e6;
 }
 
 .contenido {
-  padding: 24px;
+  padding: clamp(20px, 4vw, 40px);
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
 }

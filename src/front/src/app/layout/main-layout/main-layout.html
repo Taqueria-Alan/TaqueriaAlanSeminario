@@ -5,55 +5,32 @@
     [opened]="!isHandset()"
     class="sidenav"
   >
-    <a class="brand" href="/" title="Ver sitio publico">
-      <img class="brand__logo" src="images/logo-alan.png" alt="Logotipo Taqueria Alan" />
+    <a class="brand" href="/" title="Ver sitio público">
+      <img class="brand__logo" src="images/logo-alan.png" alt="Logotipo Taquería Alan" />
       <span class="brand__text">
-        Taqueria Alan
+        Taquería Alan
         <small>Panel administrativo</small>
       </span>
     </a>
 
     <mat-nav-list (click)="drawer.mode === 'over' && drawer.close()">
-      <a
-        mat-list-item
-        routerLink="/admin/catalogo/categorias"
-        routerLinkActive="active-link"
-        [routerLinkActiveOptions]="{ exact: false }"
-      >
-        <mat-icon matListItemIcon>menu_book</mat-icon>
-        <span matListItemTitle>Catalogo</span>
-      </a>
-      <a
-        mat-list-item
-        routerLink="/admin/catalogo/productos"
-        routerLinkActive="active-link"
-      >
-        <mat-icon matListItemIcon>lunch_dining</mat-icon>
-        <span matListItemTitle>Productos</span>
-      </a>
-      <a
-        mat-list-item
-        routerLink="/admin/club-alan/puntos"
-        routerLinkActive="active-link"
-      >
-        <mat-icon matListItemIcon>loyalty</mat-icon>
-        <span matListItemTitle>Puntos Club Alan</span>
-      </a>
-      <a
-        mat-list-item
-        routerLink="/admin/club-alan/movimientos"
-        routerLinkActive="active-link"
-      >
-        <mat-icon matListItemIcon>receipt_long</mat-icon>
-        <span matListItemTitle>Movimientos</span>
-      </a>
-      <a
-        mat-list-item
-        routerLink="/admin/club-alan/membresia"
-        routerLinkActive="active-link"
-      >
-        <mat-icon matListItemIcon>card_membership</mat-icon>
-        <span matListItemTitle>Membresia</span>
+      @for (seccion of secciones; track $index) {
+        @if (seccion.titulo) {
+          <div class="nav-label">{{ seccion.titulo }}</div>
+        }
+        @for (enlace of seccion.enlaces; track enlace.ruta) {
+          <a mat-list-item [routerLink]="enlace.ruta" routerLinkActive="active-link">
+            <mat-icon matListItemIcon>{{ enlace.icono }}</mat-icon>
+            <span matListItemTitle>{{ enlace.texto }}</span>
+            @if (enlace.ruta === '/admin/pedidos' && pedidosNuevos() > 0) {
+              <span matListItemMeta class="badge" [attr.aria-label]="pedidosNuevos() + ' pedidos nuevos'">{{ pedidosNuevos() }}</span>
+            }
+          </a>
+        }
+      }
+      <a mat-list-item class="logout-link" href="/" (click)="$event.preventDefault(); cerrarSesion()">
+        <mat-icon matListItemIcon>logout</mat-icon>
+        <span matListItemTitle>Cerrar sesión</span>
       </a>
     </mat-nav-list>
   </mat-sidenav>
@@ -61,12 +38,16 @@
   <mat-sidenav-content>
     <mat-toolbar class="app-toolbar">
       @if (isHandset()) {
-        <button mat-icon-button (click)="drawer.toggle()" aria-label="Abrir menu">
+        <button mat-icon-button (click)="drawer.toggle()" aria-label="Abrir menú">
           <mat-icon>menu</mat-icon>
         </button>
       }
       <img class="app-toolbar__logo" src="images/logo-alan.png" alt="" />
-      <span>Taqueria Alan</span>
+      <span>Taquería Alan</span>
+      <span class="spacer"></span>
+      @if (usuario(); as u) {
+        <span class="app-toolbar__user">{{ u.nombre }}</span>
+      }
     </mat-toolbar>
     <main class="contenido">
       <router-outlet />

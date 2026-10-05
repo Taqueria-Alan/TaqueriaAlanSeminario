@@ -1,78 +1,92 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectorRef, Component } from '@angular/core';
-import { MatChipsModule } from '@angular/material/chips';
+import { AfterViewInit, Component, ViewChild, computed, inject, signal } from '@angular/core';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatTableModule } from '@angular/material/table';
 import { finalize } from 'rxjs';
-import { EmptyState } from '../../../shared/components/empty-state/empty-state';
-import { LoadingSpinner } from '../../../shared/components/loading-spinner/loading-spinner';
 import { ClienteSearchComponent } from '../cliente-search/cliente-search';
 import { ClienteBusqueda } from '../models/cliente.model';
-import { MovimientoPuntos } from '../models/movimiento.model';
+import { MovimientoPuntos, TipoMovimiento } from '../models/movimiento.model';
 import { ClubAlanService } from '../services/club-alan.service';
+
+type FiltroTipo = 'TODOS' | TipoMovimiento;
 
 @Component({
   selector: 'app-movimientos-list',
   standalone: true,
-  imports: [
-    DatePipe,
-    MatTableModule,
-    MatPaginatorModule,
-    MatChipsModule,
-    LoadingSpinner,
-    EmptyState,
-    ClienteSearchComponent,
-  ],
+  imports: [DatePipe, MatPaginatorModule, ClienteSearchComponent],
   templateUrl: './movimientos-list.html',
   styleUrl: './movimientos-list.scss',
 })
-export class MovimientosListComponent {
-  loading = false;
-  buscado = false;
-  clienteSeleccionado: ClienteBusqueda | null = null;
-  movimientos: MovimientoPuntos[] = [];
-  totalElements = 0;
-  pageIndex = 0;
-  pageSize = 10;
+export class MovimientosListComponent implements AfterViewInit {
+  private readonly clubAlanService = inject(ClubAlanService);
 
-  readonly columnas = ['tipo', 'puntos', 'fecha', 'descripcion'];
+  @ViewChild(ClienteSearchComponent) private buscador?: ClienteSearchComponent;
 
-  constructor(
-    private readonly clubAlanService: ClubAlanService,
-    private readonly cdr: ChangeDetectorRef,
-  ) {}
+  readonly cargando = signal(false);
+  readonly buscado = signal(false);
+  readonly cliente = signal<ClienteBusqueda | null>(null);
+  readonly movimientos = signal<MovimientoPuntos[]>([]);
+  readonly totalElements = signal(0);
+  readonly pageIndex = signal(0);
+  readonly pageSize = signal(10);
+  readonly filtro = signal<FiltroTipo>('TODOS');
+
+  readonly filtros: { valor: FiltroTipo; etiqueta: string }[] = [
+    { valor: 'TODOS', etiqueta: 'Todos' },
+    { valor: 'ACUMULACION', etiqueta: 'Acumulaciones' },
+    { valor: 'CANJE', etiqueta: 'Canjes' },
+  ];
+
+  /** Movimientos de la pagina actual segun el filtro de tipo. */
+  readonly visibles = computed(() => {
+    const filtro = this.filtro();
+    return this.movimientos().filter((m) => filtro === 'TODOS' || m.tipo === filtro);
+  });
+
+  readonly acumulado = computed(() => this.suma((m) => m.puntos > 0));
+  readonly canjeado = computed(() => Math.abs(this.suma((m) => m.puntos < 0)));
+  /** El historial llega del mas reciente al mas antiguo: el primero trae el saldo vigente. */
+  readonly saldo = computed(() => this.movimientos()[0]?.saldoActual ?? null);
+
+  ngAfterViewInit(): void {
+    const previo = history.state?.['cliente'] as ClienteBusqueda | undefined;
+    if (previo) {
+      this.buscador?.establecer(previo);
+      this.onClienteSeleccionado(previo);
+    }
+  }
 
   onClienteSeleccionado(cliente: ClienteBusqueda): void {
-    this.clienteSeleccionado = cliente;
-    this.pageIndex = 0;
-    this.buscado = true;
+    this.cliente.set(cliente);
+    this.pageIndex.set(0);
+    this.filtro.set('TODOS');
+    this.buscado.set(true);
     this.cargar();
   }
 
   cambiarPagina(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+    this.pageIndex.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
     this.cargar();
   }
 
+  private suma(condicion: (m: MovimientoPuntos) => boolean): number {
+    return this.movimientos()
+      .filter(condicion)
+      .reduce((total, m) => total + m.puntos, 0);
+  }
+
   private cargar(): void {
-    if (!this.clienteSeleccionado) {
+    const cliente = this.cliente();
+    if (!cliente) {
       return;
     }
-
-    this.loading = true;
+    this.cargando.set(true);
     this.clubAlanService
-      .listarMovimientos(this.clienteSeleccionado.idCliente, this.pageIndex, this.pageSize)
-      .pipe(
-        finalize(() => {
-          this.loading = false;
-          this.cdr.markForCheck();
-        }),
-      )
+      .listarMovimientos(cliente.idCliente, this.pageIndex(), this.pageSize())
+      .pipe(finalize(() => this.cargando.set(false)))
       .subscribe((pagina) => {
-        this.movimientos = pagina.content;
-        this.totalElements = pagina.totalElements;
-        this.cdr.markForCheck();
+        this.movimientos.set(pagina.content);
+        this.totalElements.set(pagina.totalElements);
       });
   }
 }

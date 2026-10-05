@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  small {
+    display: block;
+    margin-top: 2px;
+    color: var(--alan-muted);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.demo p {
+  margin: 0;
+  color: var(--alan-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}

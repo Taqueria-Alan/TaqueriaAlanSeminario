@@ -1,29 +1,42 @@
 @if (loading) {
   <app-loading-spinner message="Cargando categoria..." />
 } @else {
-  <form class="categoria-form" [formGroup]="form" (ngSubmit)="guardar()">
-    <h2>{{ esEdicion ? 'Editar categoria' : 'Nueva categoria' }}</h2>
+  <div class="form-page">
+    <mat-card class="form-card">
+      <div class="form-card__header">
+        <span class="form-card__icon">
+          <mat-icon>category</mat-icon>
+        </span>
+        <div>
+          <h2>{{ esEdicion ? 'Editar categoria' : 'Nueva categoria' }}</h2>
+          <p>Define el nombre y estado de la categoria del catalogo.</p>
+        </div>
+      </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Nombre</mat-label>
-      <input matInput formControlName="nombre" maxlength="100" />
-      @if (form.controls.nombre.hasError('required')) {
-        <mat-error>El nombre es obligatorio</mat-error>
-      }
-    </mat-form-field>
+      <form [formGroup]="form" (ngSubmit)="guardar()">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="nombre" maxlength="100" />
+          @if (form.controls.nombre.hasError('required')) {
+            <mat-error>El nombre es obligatorio</mat-error>
+          }
+        </mat-form-field>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Descripcion</mat-label>
-      <textarea matInput formControlName="descripcion" rows="3"></textarea>
-    </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Descripcion</mat-label>
+          <textarea matInput formControlName="descripcion" rows="3"></textarea>
+        </mat-form-field>
 
-    <mat-checkbox formControlName="activa">Categoria activa</mat-checkbox>
+        <mat-checkbox formControlName="activa">Categoria activa</mat-checkbox>
 
-    <div class="acciones">
-      <a mat-button routerLink="/admin/catalogo/categorias">Cancelar</a>
-      <button mat-flat-button color="primary" type="submit" [disabled]="guardando">
-        Guardar
-      </button>
-    </div>
-  </form>
+        <div class="acciones">
+          <a mat-button routerLink="/admin/catalogo/categorias">Cancelar</a>
+          <button mat-flat-button color="primary" type="submit" [disabled]="guardando">
+            <mat-icon>save</mat-icon>
+            Guardar
+          </button>
+        </div>
+      </form>
+    </mat-card>
+  </div>
 }

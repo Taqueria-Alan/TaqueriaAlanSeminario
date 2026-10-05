@@ -1,0 +1,24 @@
+@use '../auth-layout';
+
+.aside__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 48px;
+  text-align: center;
+
+  h2,
+  p {
+    max-width: 440px;
+  }
+}
+
+.aside__emblem {
+  width: min(100%, 320px);
+  aspect-ratio: 1;
+  border-width: 6px;
+  box-shadow: 10px 10px 0 var(--alan-ink);
+}

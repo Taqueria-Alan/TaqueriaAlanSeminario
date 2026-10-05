@@ -1,17 +1,21 @@
-.producto-list {
+.filters {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-top: 16px;
+  gap: 14px;
 
-  .toolbar {
+  &__row {
     display: flex;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 12px;
+    align-items: center;
+    gap: 14px 24px;
   }
+}
 
-  table {
-    width: 100%;
-  }
+.paused > span:first-child {
+  opacity: 0.55;
+}
+
+.acts {
+  display: flex;
+  gap: 8px;
 }

@@ -1,15 +1,19 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpContextToken, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
+
+/** Marca una peticion para que sus errores no muestren notificacion (el llamador los maneja). */
+export const OMITIR_NOTIFICACION_ERROR = new HttpContextToken<boolean>(() => false);
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const notificationService = inject(NotificationService);
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      const message = extractMessage(error);
-      notificationService.error(message);
+      if (!req.context.get(OMITIR_NOTIFICACION_ERROR)) {
+        notificationService.error(extractMessage(error));
+      }
       return throwError(() => error);
     }),
   );

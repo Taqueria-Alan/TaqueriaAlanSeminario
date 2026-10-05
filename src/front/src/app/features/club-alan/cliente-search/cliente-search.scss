@@ -1,9 +1,27 @@
-.cliente-search {
+:host {
+  display: block;
   width: 100%;
-  max-width: 360px;
 }
 
-.telefono {
-  color: var(--mat-sys-on-surface-variant);
-  margin-left: 4px;
+.cliente-search {
+  max-width: 560px;
+}
+
+.opcion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+
+  &__nombre {
+    font-weight: 700;
+  }
+
+  small {
+    color: var(--alan-muted);
+  }
+
+  .adm-tag {
+    margin-left: auto;
+  }
 }

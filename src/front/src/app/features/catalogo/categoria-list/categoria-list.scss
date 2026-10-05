@@ -1,17 +1,9 @@
-.categoria-list {
+.acts {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  gap: 8px;
+}
 
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  table {
-    width: 100%;
-  }
+.adm-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
