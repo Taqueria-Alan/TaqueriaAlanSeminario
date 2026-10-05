@@ -1,14 +1,18 @@
 package com.taqueriaalan.clubalan.service;
 
+import com.taqueriaalan.clubalan.dto.ClienteMembresiaResponse;
 import com.taqueriaalan.clubalan.dto.MembresiaResponse;
 import com.taqueriaalan.clubalan.exception.ConflictException;
 import com.taqueriaalan.clubalan.exception.ResourceNotFoundException;
 import com.taqueriaalan.clubalan.model.Cliente;
 import com.taqueriaalan.clubalan.model.Membresia;
+import com.taqueriaalan.clubalan.model.MembresiaListadoProjection;
 import com.taqueriaalan.clubalan.repository.ClienteRepository;
 import com.taqueriaalan.clubalan.repository.MembresiaRepository;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +71,17 @@ public class MembresiaServiceImpl implements MembresiaService {
         clienteRepository.save(cliente);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ClienteMembresiaResponse> listarMiembros(String estado, Pageable pageable) {
+        Boolean soloActivas = switch (estado == null ? "" : estado.trim().toUpperCase()) {
+            case "ACTIVA" -> Boolean.TRUE;
+            case "INACTIVA" -> Boolean.FALSE;
+            default -> null;
+        };
+        return membresiaRepository.listarUltimaPorCliente(soloActivas, pageable).map(this::toResponse);
+    }
+
     private Cliente obtenerClienteOrThrow(Long idCliente) {
         return clienteRepository.findById(idCliente)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -81,6 +96,18 @@ public class MembresiaServiceImpl implements MembresiaService {
                 .fechaInicio(membresia.getFechaInicio())
                 .fechaFin(membresia.getFechaFin())
                 .activa(membresia.getFechaFin() == null)
+                .build();
+    }
+
+    private ClienteMembresiaResponse toResponse(MembresiaListadoProjection projection) {
+        return ClienteMembresiaResponse.builder()
+                .idCliente(projection.getIdCliente())
+                .nombre(projection.getNombre())
+                .telefono(projection.getTelefono())
+                .fechaInicio(projection.getFechaInicio())
+                .fechaFin(projection.getFechaFin())
+                .envioGratis(projection.getEnvioGratis())
+                .activa(projection.getFechaFin() == null)
                 .build();
     }
 }

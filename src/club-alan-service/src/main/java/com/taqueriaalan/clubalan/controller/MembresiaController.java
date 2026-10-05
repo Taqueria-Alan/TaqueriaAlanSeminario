@@ -1,10 +1,13 @@
 package com.taqueriaalan.clubalan.controller;
 
+import com.taqueriaalan.clubalan.dto.ClienteMembresiaResponse;
 import com.taqueriaalan.clubalan.dto.MembresiaResponse;
 import com.taqueriaalan.clubalan.service.MembresiaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -40,5 +44,14 @@ public class MembresiaController {
     public ResponseEntity<Void> cancelar(@PathVariable Long idCliente) {
         membresiaService.cancelar(idCliente);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/miembros")
+    @Operation(summary = "Listar los clientes con membresia, filtrando por estado (ACTIVA, INACTIVA o TODAS)")
+    public ResponseEntity<Page<ClienteMembresiaResponse>> listarMiembros(
+            @RequestParam(defaultValue = "TODAS") String estado,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(membresiaService.listarMiembros(estado, PageRequest.of(page, size)));
     }
 }
