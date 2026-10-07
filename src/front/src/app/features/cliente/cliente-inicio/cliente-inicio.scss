@@ -212,9 +212,11 @@ p {
   border-radius: 28px;
   background: var(--alan-mustard);
   box-shadow: 8px 8px 0 var(--alan-ink);
+  max-width: 100%;
 
   div {
     flex: 1 1 320px;
+    min-width: 0;
   }
 
   h2 {

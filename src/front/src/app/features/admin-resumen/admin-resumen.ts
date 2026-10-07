@@ -1,5 +1,4 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import {
   EstadoPedido,
   Pedido,
@@ -26,7 +25,6 @@ const ALTO_MAXIMO_BARRA = 170;
 @Component({
   selector: 'app-admin-resumen',
   standalone: true,
-  imports: [RouterLink],
   templateUrl: './admin-resumen.html',
   styleUrl: './admin-resumen.scss',
 })

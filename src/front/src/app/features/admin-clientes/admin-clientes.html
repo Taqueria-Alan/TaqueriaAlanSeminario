@@ -25,7 +25,7 @@
               <div class="adm-row" [class.is-active]="cliente()?.idCliente === c.idCliente">
                 <b>{{ c.nombre }}</b>
                 <span>{{ c.telefono || '—' }}</span>
-                <span>{{ c.email || '—' }}</span>
+                <span class="cell-truncate">{{ c.email || '—' }}</span>
                 <span>{{ c.puntosClubAlan }}</span>
                 <span class="adm-tag" [class.adm-tag--green]="c.miembroClub">{{ c.miembroClub ? 'Miembro' : 'No miembro' }}</span>
                 <button type="button" class="adm-chip" (click)="seleccionar(c)">Ver ficha</button>

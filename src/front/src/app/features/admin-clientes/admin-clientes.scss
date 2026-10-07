@@ -3,6 +3,13 @@
   border-radius: 12px;
 }
 
+.cell-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ficha {
   display: flex;
   flex-direction: column;
