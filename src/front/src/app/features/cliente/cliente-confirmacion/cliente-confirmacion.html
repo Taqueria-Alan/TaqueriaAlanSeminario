@@ -1,0 +1,26 @@
+@if (cargando()) {
+  <p class="loading">Confirmando el pedido…</p>
+} @else if (pedido(); as p) {
+  <section class="confirmation">
+    <span class="check material-symbols-outlined" aria-hidden="true">check_circle</span>
+    <p class="eyebrow">PAGO APROBADO</p>
+    <h1>¡Gracias por tu pedido!</h1>
+    <p class="lead">El pedido #{{ p.id }} quedó confirmado. Puedes seguir su estado desde tu inicio.</p>
+    <div class="ticket">
+      <span>Pedido</span><b>#{{ p.id }}</b>
+      <span>Tipo</span><b>{{ tipoDe(p) }}</b>
+      <span>Estado</span><b>{{ etiquetaEstado[p.estado] }}</b>
+      <span>Detalle</span><b>{{ resumen(p.lineas) }}</b>
+      <span>Total</span><strong>Q{{ p.total }}</strong>
+    </div>
+    @if (p.clase === 'SUSCRIPCION') {
+      <p class="club">Tu pago activa el flujo de membresía de Club Alan. El beneficio se refleja al confirmar el procesamiento.</p>
+    }
+    <a routerLink="/cliente" class="alan-btn alan-btn--green alan-btn--lg">Ver mis pedidos</a>
+  </section>
+} @else {
+  <section class="confirmation">
+    <h1>No encontramos el pedido</h1>
+    <a routerLink="/cliente" class="alan-btn">Volver al inicio</a>
+  </section>
+}

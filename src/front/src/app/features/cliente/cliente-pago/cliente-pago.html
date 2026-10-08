@@ -1,0 +1,64 @@
+<header class="head">
+  <a routerLink="/cliente" class="back"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>Volver a mis pedidos</a>
+  <h1>Revisa y paga tu pedido</h1>
+  <p>El pago usa un simulador local; no se transmite información bancaria real.</p>
+</header>
+
+@if (cargando()) {
+  <p class="loading">Cargando el pedido…</p>
+} @else if (pedido(); as p) {
+  <div class="layout">
+    <section class="card order">
+      <span class="eyebrow">PEDIDO #{{ p.id }}</span>
+      <h2>{{ p.clase === 'SUSCRIPCION' ? 'Suscripción Club Alan' : 'Tu pedido' }}</h2>
+      <p class="order__summary">{{ resumen(p.lineas) }}</p>
+      @if (p.direccion) {
+        <p class="order__address"><span class="material-symbols-outlined" aria-hidden="true">location_on</span>{{ p.direccion }}</p>
+      }
+      @if (p.observaciones) {
+        <p class="order__note"><b>Indicaciones:</b> {{ p.observaciones }}</p>
+      }
+      <ul>
+        @for (linea of p.lineas; track linea.idProducto) {
+          <li><span>{{ linea.cantidad }} × {{ linea.nombre }}</span><b>Q{{ linea.precio * linea.cantidad }}</b></li>
+        }
+      </ul>
+      <div class="total"><span>Total</span><strong>Q{{ p.total }}</strong></div>
+
+      @if (puedeEditar()) {
+        <div class="order__actions">
+          <button type="button" class="alan-btn" (click)="editar()">Cambiar pedido</button>
+          <button type="button" class="text-danger" [disabled]="cancelando()" (click)="cancelar()">
+            {{ cancelando() ? 'Cancelando…' : 'Cancelar pedido' }}
+          </button>
+        </div>
+      } @else {
+        <p class="locked">Este pedido ya no admite cambios porque fue procesado.</p>
+      }
+    </section>
+
+    <section class="card payment">
+      <span class="eyebrow">PAGO DE DEMOSTRACIÓN</span>
+      <h2>Tarjeta</h2>
+      <p class="help">Prueba exitosa: <b>4242 4242 4242 4242</b>. Para simular fondos insuficientes usa una tarjeta de prueba terminada en <b>0002</b>.</p>
+
+      <label>
+        Número de tarjeta de prueba
+        <input type="text" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000" [ngModel]="numeroTarjeta()" (ngModelChange)="numeroTarjeta.set($event)" />
+      </label>
+      <label>
+        Titular de prueba
+        <input type="text" autocomplete="cc-name" placeholder="Nombre completo" [ngModel]="titular()" (ngModelChange)="titular.set($event)" />
+      </label>
+      @if (errorPago()) {
+        <p class="payment__error" role="alert">{{ errorPago() }}</p>
+      }
+      <button type="button" class="alan-btn alan-btn--green alan-btn--lg alan-btn--block" [disabled]="!puedePagar()" (click)="pagar()">
+        {{ pagando() ? 'Procesando pago…' : 'Pagar Q' + p.total }}
+      </button>
+      <p class="legal">No almacenamos el número de tarjeta. Es un flujo de prueba del prototipo.</p>
+    </section>
+  </div>
+} @else {
+  <p class="loading">No encontramos ese pedido.</p>
+}

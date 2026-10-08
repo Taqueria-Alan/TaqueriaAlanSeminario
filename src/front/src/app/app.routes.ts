@@ -42,6 +42,20 @@ export const routes: Routes = [
             (m) => m.ClientePedirComponent,
           ),
       },
+      {
+        path: 'pago/:id',
+        loadComponent: () =>
+          import('./features/cliente/cliente-pago/cliente-pago').then(
+            (m) => m.ClientePagoComponent,
+          ),
+      },
+      {
+        path: 'confirmacion/:id',
+        loadComponent: () =>
+          import('./features/cliente/cliente-confirmacion/cliente-confirmacion').then(
+            (m) => m.ClienteConfirmacionComponent,
+          ),
+      },
     ],
   },
   {

@@ -4,10 +4,12 @@ server:
 spring:
   application:
     name: club-alan-service
+  profiles:
+    default: local
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?useSSL=true&requireSSL=true
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:root}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?useSSL=${DB_SSL:true}&requireSSL=${DB_SSL:true}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:root}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:root}}
   jpa:
     hibernate:
       ddl-auto: none
@@ -19,7 +21,7 @@ spring:
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       ssl:
-        enabled: true
+        enabled: ${REDIS_SSL:true}
 
 app:
   cors:

@@ -1,210 +1,196 @@
-import { Injectable, effect, inject, signal } from '@angular/core';
-import { Observable, defer, delay, of } from 'rxjs';
+import { HttpClient, HttpContext } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, catchError, map, tap, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth.service';
-import { MENU_ESTATICO } from '../data/menu.data';
-import {
-  EstadoPedido,
-  LineaPedido,
-  NuevoPedido,
-  Pedido,
-  TipoPedido,
-  esSuscripcion,
-  siguienteEstado,
-} from './pedido.model';
+import { OMITIR_NOTIFICACION_ERROR } from '../interceptors/error.interceptor';
+import { EstadoPago, EstadoPedido, LineaPedido, NuevoPedido, Pedido } from './pedido.model';
+
+interface PedidoApi {
+  id?: number;
+  idPedido?: number;
+  idCliente?: number | null;
+  cliente?: string;
+  nombreCliente?: string;
+  tipo?: string;
+  modalidad?: string;
+  clase?: string;
+  estado?: string;
+  direccion?: string | null;
+  direccionEntrega?: string | null;
+  lineas?: LineaApi[];
+  detalles?: LineaApi[];
+  total?: number | string;
+  creadoEn?: string;
+  fechaHora?: string;
+  observaciones?: string | null;
+  pagoEstado?: string;
+}
+
+interface LineaApi {
+  idProducto?: number;
+  productoId?: number;
+  nombre?: string;
+  nombreProducto?: string;
+  detalle?: string;
+  descripcion?: string;
+  precio?: number | string;
+  precioUnitario?: number | string;
+  cantidad?: number;
+  observaciones?: string | null;
+}
 
 /**
- * PEDIDOS SIMULADOS.
- *
- * pedidos-service todavia no expone endpoints, asi que los pedidos viven en
- * localStorage y se comparten entre el panel de cliente y el de admin (misma
- * pestana o navegador). Cuando exista la API, reemplaza el cuerpo de `crear` y
- * `avanzar` por llamadas HttpClient y alimenta `pedidos` desde el backend.
- *
- * Para que el resumen y los reportes tengan datos, la primera vez se siembra
- * una semana de historial y, cada dia nuevo, los pedidos de ejemplo de hoy.
+ * Cliente HTTP de pedidos-service. No conserva pedidos, precios ni semillas en
+ * el navegador: el backend calcula el total y mantiene el historial oficial.
  */
-
-const PEDIDOS_KEY = 'taqueria_mock_pedidos';
-const LATENCIA_MS = 250;
-const PRIMER_ID_HOY = 1040;
-const DIAS_HISTORIAL = 6;
-
-type SemillaPedido = [hora: string, cliente: string, tipo: TipoPedido, estado: EstadoPedido, items: [number, number][]];
-
-const SEMILLAS_HOY: SemillaPedido[] = [
-  ['19:05', 'Ana M.', 'LLEVAR', 'ENTREGADO', [[1001, 1], [1011, 1]]],
-  ['19:20', 'Luis P.', 'DOMICILIO', 'ENTREGADO', [[1004, 1], [1033, 1]]],
-  ['19:35', 'Marta G.', 'LLEVAR', 'ENTREGADO', [[1032, 1]]],
-  ['19:50', 'Diego R.', 'DOMICILIO', 'ENTREGADO', [[1013, 1], [1012, 1]]],
-  ['20:10', 'Sofía L.', 'LLEVAR', 'ENTREGADO', [[1023, 1]]],
-  ['20:25', 'Pablo T.', 'DOMICILIO', 'ENTREGADO', [[1002, 1], [1033, 1]]],
-  ['20:40', 'Rosa C.', 'LLEVAR', 'EN_PREPARACION', [[1021, 2]]],
-  ['20:50', 'Jorge V.', 'DOMICILIO', 'EN_RUTA', [[1003, 1], [1011, 2]]],
-  ['21:00', 'Elena B.', 'LLEVAR', 'EN_PREPARACION', [[1031, 1]]],
-  ['21:10', 'Mario S.', 'LLEVAR', 'RECIBIDO', [[1001, 2]]],
-  ['21:15', 'Lucía F.', 'DOMICILIO', 'RECIBIDO', [[1012, 1]]],
-];
-
-const NOMBRES_HISTORIAL = ['Ana M.', 'Luis P.', 'Marta G.', 'Diego R.', 'Sofía L.', 'Pablo T.', 'Rosa C.', 'Jorge V.', 'Elena B.', 'Mario S.'];
-
 @Injectable({ providedIn: 'root' })
 export class PedidoService {
+  private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
-  private readonly _pedidos = signal<Pedido[]>(this.sembrar(this.leer()));
+  private readonly _pedidos = signal<Pedido[]>([]);
 
   readonly pedidos = this._pedidos.asReadonly();
+  /** Identidad usada por el puente local hasta que auth-service entregue JWT. */
+  readonly clienteActualId = computed<number | null>(() =>
+    environment.securityEnabled ? (this.auth.usuario()?.id ?? null) : environment.clienteDemoId,
+  );
 
   constructor() {
-    effect(() => localStorage.setItem(PEDIDOS_KEY, JSON.stringify(this._pedidos())));
+    this.cargar().subscribe({ error: () => undefined });
+  }
+
+  /** Refresca el listado que comparten el panel del cliente y el de administración. */
+  cargar(): Observable<Pedido[]> {
+    const context = new HttpContext().set(OMITIR_NOTIFICACION_ERROR, true);
+    return this.http.get<PedidoApi[]>(environment.pedidosApiUrl, { context }).pipe(
+      map((respuesta) => respuesta.map(normalizarPedido)),
+      tap((pedidos) => this._pedidos.set(pedidos)),
+    );
+  }
+
+  obtener(id: number): Observable<Pedido> {
+    return this.http.get<PedidoApi>(`${environment.pedidosApiUrl}/${id}`).pipe(
+      map(normalizarPedido),
+      tap((pedido) => this.guardar(pedido)),
+    );
   }
 
   crear(nuevo: NuevoPedido): Observable<Pedido> {
-    return defer(() => {
-      const pedido: Pedido = {
-        id: this.siguienteId(),
-        idCliente: nuevo.idCliente,
-        cliente: nuevo.cliente,
-        tipo: nuevo.tipo,
-        clase: nuevo.clase ?? 'NORMAL',
-        direccion: nuevo.tipo === 'DOMICILIO' ? nuevo.direccion : null,
-        estado: 'RECIBIDO',
-        lineas: nuevo.lineas,
-        total: totalDe(nuevo.lineas),
-        creadoEn: new Date().toISOString(),
-      };
-      this._pedidos.update((lista) => [...lista, pedido]);
-      return of(pedido);
-    }).pipe(delay(LATENCIA_MS));
+    const idCliente = this.clienteActualId() ?? nuevo.idCliente;
+    if (idCliente === null) {
+      return throwError(() => new Error('No hay un cliente autenticado para crear el pedido.'));
+    }
+    return this.http
+      .post<PedidoApi>(environment.pedidosApiUrl, aSolicitud(nuevo, idCliente))
+      .pipe(map(normalizarPedido), tap((pedido) => this.guardar(pedido)));
   }
 
-  /** Pasa el pedido al siguiente estado de su flujo (ver `flujoDe`). */
-  avanzar(id: number): Observable<Pedido | undefined> {
-    return defer(() => {
-      let actualizado: Pedido | undefined;
-      this._pedidos.update((lista) =>
-        lista.map((p) => {
-          const siguiente = siguienteEstado(p);
-          if (p.id !== id || !siguiente) {
-            return p;
-          }
-          actualizado = { ...p, estado: siguiente };
-          return actualizado;
-        }),
-      );
-      this.completarSuscripcion(actualizado);
-      return of(actualizado);
+  /** Editar solo se habilita en la interfaz mientras el pedido está recibido y sin pago. */
+  actualizar(id: number, nuevo: NuevoPedido): Observable<Pedido> {
+    const idCliente = this.clienteActualId() ?? nuevo.idCliente;
+    if (idCliente === null) {
+      return throwError(() => new Error('No hay un cliente autenticado para actualizar el pedido.'));
+    }
+    return this.http
+      .put<PedidoApi>(`${environment.pedidosApiUrl}/${id}`, aSolicitud(nuevo, idCliente))
+      .pipe(map(normalizarPedido), tap((pedido) => this.guardar(pedido)));
+  }
+
+  cancelar(id: number): Observable<Pedido> {
+    return this.http
+      .post<PedidoApi>(`${environment.pedidosApiUrl}/${id}/cancelar`, {})
+      .pipe(map(normalizarPedido), tap((pedido) => this.guardar(pedido)));
+  }
+
+  /** Pasa el pedido al siguiente estado permitido por pedidos-service. */
+  avanzar(id: number): Observable<Pedido> {
+    return this.http
+      .post<PedidoApi>(`${environment.pedidosApiUrl}/${id}/avanzar`, {})
+      .pipe(map(normalizarPedido), tap((pedido) => this.guardar(pedido)));
+  }
+
+  /** Obtiene de nuevo los pedidos desde la fuente de verdad, sin datos locales simulados. */
+  recargar(): Observable<Pedido[]> {
+    return this.cargar().pipe(
+      catchError((error) => {
+        this._pedidos.set([]);
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  private guardar(pedido: Pedido): void {
+    this._pedidos.update((actuales) => {
+      const indice = actuales.findIndex((actual) => actual.id === pedido.id);
+      if (indice < 0) {
+        return [pedido, ...actuales];
+      }
+      return actuales.map((actual) => (actual.id === pedido.id ? pedido : actual));
     });
   }
-
-  /** Borra los pedidos simulados y vuelve a sembrar los datos de ejemplo. */
-  restablecer(): void {
-    this._pedidos.set(this.sembrar([]));
-  }
-
-  /**
-   * Al entregar una suscripcion el cliente pasa a ser miembro. En el backend real esto lo
-   * hace pedidos-service llamando a club-alan-service (POST /clientes/{id}/membresia).
-   */
-  private completarSuscripcion(pedido: Pedido | undefined): void {
-    if (pedido && esSuscripcion(pedido) && pedido.estado === 'ENTREGADO' && pedido.idCliente !== null) {
-      this.auth.activarMembresiaSimulada(pedido.idCliente);
-    }
-  }
-
-  private siguienteId(): number {
-    return Math.max(PRIMER_ID_HOY - 1, ...this._pedidos().map((p) => p.id)) + 1;
-  }
-
-  private leer(): Pedido[] {
-    try {
-      const leidos = JSON.parse(localStorage.getItem(PEDIDOS_KEY) ?? '[]');
-      return Array.isArray(leidos) ? leidos.map((p) => migrarEstado({ ...p, clase: p.clase ?? 'NORMAL' })) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private sembrar(guardados: Pedido[]): Pedido[] {
-    const inicioHoy = new Date();
-    inicioHoy.setHours(0, 0, 0, 0);
-    const sinHistorial = !guardados.some((p) => new Date(p.creadoEn) < inicioHoy);
-    const lista = sinHistorial ? [...generarHistorial(), ...guardados] : guardados;
-    const hoy = new Date().toDateString();
-    if (lista.some((p) => new Date(p.creadoEn).toDateString() === hoy)) {
-      return lista;
-    }
-    const base = Math.max(PRIMER_ID_HOY - 1, ...lista.map((p) => p.id));
-    return [...lista, ...SEMILLAS_HOY.map((s, i) => crearSemilla(s, base + i + 1))];
-  }
 }
 
-/** Convierte los estados de una version anterior de los datos simulados a los vigentes. */
-function migrarEstado(p: Pedido): Pedido {
-  const anterior = p.estado as string;
-  if (anterior === 'NUEVO') {
-    return { ...p, estado: 'RECIBIDO' };
-  }
-  if (anterior === 'PREPARANDO') {
-    return { ...p, estado: 'EN_PREPARACION' };
-  }
-  if (anterior === 'LISTO') {
-    return { ...p, estado: p.tipo === 'DOMICILIO' ? 'EN_RUTA' : 'EN_PREPARACION' };
-  }
-  return p;
+function aSolicitud(nuevo: NuevoPedido, idCliente: number) {
+  return {
+    idCliente,
+    tipo: nuevo.tipo,
+    clase: nuevo.clase ?? 'NORMAL',
+    direccion: nuevo.tipo === 'DOMICILIO' ? nuevo.direccion?.trim() || null : null,
+    observaciones: nuevo.observaciones?.trim() || null,
+    // Nunca se envían precio ni total: pedidos-service consulta el catálogo oficial.
+    lineas: nuevo.lineas.map((linea) => ({
+      idProducto: linea.idProducto,
+      cantidad: linea.cantidad,
+      observaciones: linea.observaciones?.trim() || null,
+    })),
+  };
 }
 
-export function totalDe(lineas: LineaPedido[]): number {
-  return lineas.reduce((suma, l) => suma + l.precio * l.cantidad, 0);
+function normalizarPedido(api: PedidoApi): Pedido {
+  const tipo = api.tipo ?? api.modalidad ?? 'LLEVAR';
+  const estado = api.estado ?? 'RECIBIDO';
+  const lineas = api.lineas ?? api.detalles ?? [];
+  const idCliente = api.idCliente === null || api.idCliente === undefined ? null : numero(api.idCliente);
+  return {
+    id: numero(api.id ?? api.idPedido),
+    idCliente,
+    cliente: api.cliente ?? api.nombreCliente ?? (idCliente === null ? 'Cliente' : `Cliente #${idCliente}`),
+    tipo: tipo === 'DOMICILIO' ? 'DOMICILIO' : 'LLEVAR',
+    clase: api.clase === 'SUSCRIPCION' ? 'SUSCRIPCION' : 'NORMAL',
+    direccion: api.direccion ?? api.direccionEntrega ?? null,
+    estado: estadoValido(estado),
+    lineas: lineas.map(normalizarLinea),
+    total: numero(api.total),
+    creadoEn: api.creadoEn ?? api.fechaHora ?? new Date().toISOString(),
+    observaciones: api.observaciones ?? null,
+    pagoEstado: estadoPagoValido(api.pagoEstado),
+  };
 }
 
-function lineasDe(items: [number, number][]): LineaPedido[] {
-  const catalogo = MENU_ESTATICO.flatMap((c) => c.items);
-  return items.map(([idProducto, cantidad]) => {
-    const item = catalogo.find((i) => i.id === idProducto)!;
-    return { idProducto, nombre: item.nombre, detalle: item.detalle, precio: item.precio, cantidad };
-  });
+function normalizarLinea(api: LineaApi): LineaPedido {
+  return {
+    idProducto: numero(api.idProducto ?? api.productoId),
+    nombre: api.nombre ?? api.nombreProducto ?? 'Producto',
+    detalle: api.detalle ?? api.descripcion ?? '',
+    precio: numero(api.precio ?? api.precioUnitario),
+    cantidad: numero(api.cantidad),
+    observaciones: api.observaciones ?? null,
+  };
 }
 
-function crearSemilla([hora, cliente, tipo, estado, items]: SemillaPedido, id: number): Pedido {
-  const lineas = lineasDe(items);
-  const [h, m] = hora.split(':').map(Number);
-  const fecha = new Date();
-  fecha.setHours(h, m, 0, 0);
-  return { id, idCliente: null, cliente, tipo, clase: 'NORMAL', direccion: null, estado, lineas, total: totalDe(lineas), creadoEn: fecha.toISOString() };
+function numero(valor: number | string | undefined | null): number {
+  const convertido = Number(valor ?? 0);
+  return Number.isFinite(convertido) ? convertido : 0;
 }
 
-/** Pedidos entregados de los ultimos dias, con un generador pseudoaleatorio fijo. */
-function generarHistorial(): Pedido[] {
-  let semilla = 7;
-  const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
-  const ids = MENU_ESTATICO.flatMap((c) => c.items.map((i) => i.id));
-  const pedidos: Pedido[] = [];
-  let id = 900;
+function estadoValido(valor: string): EstadoPedido {
+  const estado = valor.toUpperCase().replace(/\s+/g, '_');
+  return ['RECIBIDO', 'EN_PREPARACION', 'EN_RUTA', 'ENTREGADO', 'CANCELADO'].includes(estado)
+    ? (estado as EstadoPedido)
+    : 'RECIBIDO';
+}
 
-  for (let dia = DIAS_HISTORIAL; dia >= 1; dia--) {
-    const cantidad = 8 + Math.floor(azar() * 8);
-    for (let n = 0; n < cantidad; n++) {
-      const items: [number, number][] = Array.from({ length: 1 + Math.floor(azar() * 3) }, () => [
-        ids[Math.floor(azar() * ids.length)],
-        1 + Math.floor(azar() * 2),
-      ]);
-      const lineas = lineasDe(items);
-      const fecha = new Date();
-      fecha.setDate(fecha.getDate() - dia);
-      fecha.setHours(19 + Math.floor(azar() * 3), Math.floor(azar() * 60), 0, 0);
-      pedidos.push({
-        id: id++,
-        idCliente: null,
-        cliente: NOMBRES_HISTORIAL[Math.floor(azar() * NOMBRES_HISTORIAL.length)],
-        tipo: azar() > 0.6 ? 'DOMICILIO' : 'LLEVAR',
-        clase: 'NORMAL',
-        direccion: null,
-        estado: 'ENTREGADO',
-        lineas,
-        total: totalDe(lineas),
-        creadoEn: fecha.toISOString(),
-      });
-    }
-  }
-  return pedidos;
+function estadoPagoValido(valor: string | undefined): EstadoPago | undefined {
+  return valor === 'APROBADO' || valor === 'RECHAZADO' || valor === 'PENDIENTE' ? valor : undefined;
 }

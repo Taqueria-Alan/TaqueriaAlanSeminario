@@ -47,15 +47,21 @@ export class AdminResumenComponent {
     return this.pedidoService.pedidos().filter((p) => new Date(p.creadoEn).toDateString() === hoy);
   });
 
-  readonly ventas = computed(() => this.pedidosHoy().reduce((s, p) => s + p.total, 0));
+  readonly ventas = computed(() =>
+    this.pedidosHoy()
+      .filter((pedido) => pedido.estado !== 'CANCELADO')
+      .reduce((suma, pedido) => suma + pedido.total, 0),
+  );
   readonly cantidad = computed(() => this.pedidosHoy().length);
   readonly ticket = computed(() => (this.cantidad() ? this.ventas() / this.cantidad() : 0));
-  readonly enCurso = computed(() => this.pedidosHoy().filter((p) => p.estado !== 'ENTREGADO').length);
+  readonly enCurso = computed(
+    () => this.pedidosHoy().filter((p) => p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO').length,
+  );
 
   /** Ventas (Q) por hora del dia; la barra mas alta se marca como hora pico. */
   readonly barras = computed(() => {
     const porHora = new Map<number, number>();
-    for (const p of this.pedidosHoy()) {
+    for (const p of this.pedidosHoy().filter((pedido) => pedido.estado !== 'CANCELADO')) {
       const hora = new Date(p.creadoEn).getHours();
       porHora.set(hora, (porHora.get(hora) ?? 0) + p.total);
     }
@@ -77,7 +83,7 @@ export class AdminResumenComponent {
 
   readonly masVendidos = computed(() => {
     const acumulado = new Map<number, { nombre: string; detalle: string; unidades: number }>();
-    for (const p of this.pedidosHoy()) {
+    for (const p of this.pedidosHoy().filter((pedido) => pedido.estado !== 'CANCELADO')) {
       for (const l of p.lineas) {
         const actual = acumulado.get(l.idProducto) ?? { nombre: l.nombre, detalle: l.detalle, unidades: 0 };
         actual.unidades += l.cantidad;

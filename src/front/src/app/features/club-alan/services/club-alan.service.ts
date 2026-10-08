@@ -40,8 +40,9 @@ export class ClubAlanService {
     });
   }
 
-  obtenerPuntos(idCliente: number): Observable<PuntosResponse> {
-    return this.http.get<PuntosResponse>(`${this.baseUrl}/${idCliente}/puntos`);
+  obtenerPuntos(idCliente: number, silencioso = false): Observable<PuntosResponse> {
+    const context = new HttpContext().set(OMITIR_NOTIFICACION_ERROR, silencioso);
+    return this.http.get<PuntosResponse>(`${this.baseUrl}/${idCliente}/puntos`, { context });
   }
 
   listarMovimientos(

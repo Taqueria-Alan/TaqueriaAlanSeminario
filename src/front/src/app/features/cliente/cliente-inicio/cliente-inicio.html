@@ -40,6 +40,9 @@
           </li>
         }
       </ol>
+      @if (pedido.pagoEstado !== 'APROBADO' && pedido.estado === 'RECIBIDO') {
+        <button type="button" class="alan-btn alan-btn--mustard" (click)="irAPago(pedido)">Continuar al pago</button>
+      }
     </div>
   } @else {
     <div class="order order--empty">

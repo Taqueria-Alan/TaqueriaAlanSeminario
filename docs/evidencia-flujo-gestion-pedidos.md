@@ -1,0 +1,154 @@
+# Evidencia técnica: flujo funcional de gestión de pedidos
+
+## Alcance del prototipo
+
+El prototipo conecta la vista Angular de cliente con `pedidos-service` (puerto
+`8083`), `pagos-service` (puerto `8084`) y Club Alan (puerto `8085`). El
+catálogo es la fuente de verdad de productos y precios; el navegador nunca
+decide el total de una orden.
+
+Para desarrollo local no se construye `auth-service` en esta rama. El servicio
+de pedidos queda preparado para JWT mediante `SECURITY_ENABLED`; el perfil
+local lo desactiva y usa el puente explícito `clienteDemoId: 5` de Angular. Al
+integrar autenticación, ese valor se reemplaza por el cliente derivado del JWT,
+sin cambiar el flujo de pedido ni pago.
+
+La rama entrega adicionalmente el estado terminal `CANCELADO`. Es una extensión
+necesaria para conservar la auditoría de una cancelación solicitada por el
+cliente antes de pagar; no sustituye los estados operativos acordados:
+`RECIBIDO`, `EN_PREPARACION`, `EN_RUTA` y `ENTREGADO`.
+
+## Ruta demostrable de éxito
+
+1. El cliente crea un pedido para llevar o a domicilio desde **Pedir**. Angular
+   envía solamente identificadores de producto, cantidades y observaciones.
+2. `pedidos-service` verifica cliente, disponibilidad y precios en `PRODUCTO`,
+   calcula los subtotales y el total en el servidor y persiste `RECIBIDO`.
+3. El cliente abre la pantalla intermedia **Pago**, ingresa una tarjeta de
+   sandbox válida (`4242 4242 4242 4242`) y confirma.
+4. `pagos-service` registra el pago `APROBADO` con una clave de idempotencia;
+   no guarda PAN, CVV ni datos reales de tarjeta. El pedido normal pasa a
+   `EN_PREPARACION`.
+5. El administrador avanza con `POST /api/pedidos/{id}/avanzar`:
+   - `LLEVAR`: `EN_PREPARACION` -> `ENTREGADO`.
+   - `DOMICILIO`: `EN_PREPARACION` -> `EN_RUTA` -> `ENTREGADO`.
+6. Si el pedido corresponde a una suscripción, el pago lo deja en `ENTREGADO`
+   y activa Club Alan. Los pedidos posteriores de un miembro acumulan
+   `floor(total / 10)` puntos una sola vez por pedido.
+
+## Casos de rechazo y cambio solicitados
+
+| Escenario | Acción de demostración | Resultado verificable |
+| --- | --- | --- |
+| Tarjeta inválida | Introducir `1234` en la pantalla de pago | HTTP 422, `TARJETA_INVALIDA`, el pedido continúa `RECIBIDO` y no hay cobro. |
+| Fondos insuficientes | Usar la tarjeta sandbox `4000 0000 0000 0002` | HTTP 422, `FONDOS_INSUFICIENTES`, el pedido continúa editable y sin cobro. |
+| Cliente cambia pedido | Desde Pago seleccionar **Editar**, cambiar cantidad o modalidad y guardar | HTTP 200, total recalculado por backend, todavía `RECIBIDO`. |
+| Cliente cancela | Desde Pago seleccionar **Cancelar** antes de un pago aprobado | HTTP 200, estado terminal `CANCELADO`, sin cobro. |
+| Reintento técnico | Enviar dos veces la misma `Idempotency-Key` | Mismo `idPago`, `idempotente: true`; no se duplica el cargo ni los puntos. |
+| Clave usada en otra orden | Usar la misma `Idempotency-Key` al pagar un segundo pedido | Se crea un pago distinto del segundo pedido; no se puede reutilizar un pago ajeno. |
+| Cambio tardío | Intentar editar o cancelar tras un pago aprobado | HTTP 422, `PEDIDO_PAGADO`. |
+| Suscripción alterada | Marcar un taco u otro producto común como `SUSCRIPCION` | HTTP 400, `SUSCRIPCION_INVALIDA`; únicamente el SKU oficial de membresía activa Club Alan. |
+
+> Las tarjetas indicadas son valores de simulación exclusiva. Nunca se deben
+> capturar, registrar ni sustituir por una tarjeta real.
+
+## Registros esperados para la evidencia
+
+Los servicios escriben mensajes estructurados sin información de tarjeta. Para
+una ruta exitosa, el identificador transversal es `pedidoId`; el
+`correlationId` identifica la solicitud HTTP individual (por ejemplo,
+`pytest-pedidos-...`) sin revelar datos sensibles:
+
+```text
+event=pedido.creado correlationId=... pedidoId=123 clienteId=5 estado=RECIBIDO modalidad=LLEVAR total=45.00
+event=pago.aprobado correlationId=... pedidoId=123 pagoId=88 monto=45.00 pedidoEstado=EN_PREPARACION
+event=pedido.avanzado correlationId=... pedidoId=123 estadoAntes=EN_PREPARACION estadoDespues=ENTREGADO
+```
+
+Para los casos no exitosos y de modificación, la evidencia esperada es:
+
+```text
+event=pago.rechazado correlationId=... pedidoId=124 codigo=TARJETA_INVALIDA
+event=pago.rechazado correlationId=... pedidoId=125 codigo=FONDOS_INSUFICIENTES
+event=pedido.actualizado correlationId=... pedidoId=126 clienteId=5 total=67.50
+event=pedido.cancelado correlationId=... pedidoId=127 clienteId=5 motivoPresente=true
+event=pago.idempotente correlationId=... pedidoId=123 pagoId=88 estado=APROBADO
+event=club.activado pedidoId=128 clienteId=5
+event=puntos.acumulados pedidoId=129 clienteId=5 puntos=4
+```
+
+Los valores numéricos cambian en cada ejecución. Las líneas anteriores son el
+formato esperado, no una transcripción de datos productivos.
+
+## Comandos de reproducción y captura
+
+Con Docker Desktop en estado **Engine running**, desde la raíz del repositorio:
+
+```powershell
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.yml ps
+docker compose -f docker/docker-compose.yml logs --tail 120 pedidos-service pagos-service club-alan-service
+```
+
+Para la interfaz, en otra terminal:
+
+```powershell
+Set-Location src/front
+npm start
+```
+
+Abrir `http://localhost:4200`, crear un pedido y tomar capturas de estas
+pantallas, en este orden: carrito, pago, confirmación, seguimiento del pedido y
+panel de administración. Para capturar una ruta de error, repetir desde la
+pantalla de pago con cada valor de sandbox de la tabla anterior.
+
+Para ejecutar la evidencia automatizada en el mismo entorno:
+
+```powershell
+$env:AUTH_URL = 'http://localhost:8081'
+$env:CATALOGO_URL = 'http://localhost:8082'
+$env:PEDIDOS_URL = 'http://localhost:8083'
+$env:PAGOS_URL = 'http://localhost:8084'
+$env:CLUB_URL = 'http://localhost:8085'
+.\.venv\Scripts\python.exe -m pytest tests/ --junitxml=reports/pytest.xml --html=reports/report.html --self-contained-html
+```
+
+El resultado esperado es `27 passed` y se generan `reports/pytest.xml` y
+`reports/report.html`. Jenkins ejecuta estos mismos archivos con puertos
+efímeros, publica el XML como JUnit y el HTML como **Pytest HTML**.
+
+## Resultado de las verificaciones de esta rama
+
+| Verificación | Resultado | Evidencia |
+| --- | --- | --- |
+| Compilación de Angular | Aprobada | `npm run build` finalizó correctamente y generó `dist/front`. |
+| Descubrimiento de pruebas | Aprobado | `pytest --collect-only` encontró 27 pruebas: 15 smoke y 12 de flujo API. |
+| Formato de cambios | Aprobado | `git diff --check` no reportó errores de espacios. |
+| Ejecución Docker de integración | Pendiente del motor local | El cliente de Docker no encontró el pipe `dockerDesktopLinuxEngine`; el código y los comandos quedan preparados, pero no se debe afirmar una ejecución de contenedores hasta que Docker Desktop indique **Engine running**. |
+
+Esta separación permite documentar con precisión lo comprobado y evita
+presentar resultados simulados como una ejecución real.
+
+## Límites declarados antes de producción
+
+- En este alcance `codigoPedido` es una referencia pública derivada del ID
+  persistido (`TAQ-00001`); no es un UUID almacenado en una columna adicional.
+- El perfil Azure valida la firma del JWT, pero la asociación definitiva entre
+  el `subject` del token, el `idCliente` y los roles queda para la rama de
+  `auth-service`. No se debe activar ese perfil como autorización productiva
+  hasta incorporar esa regla de propietario/rol.
+- El puente local `clienteDemoId: 5` existe solo para que la demo funcione sin
+  mezclar autenticación en esta rama. No se despliega como identidad de un
+  usuario real.
+
+## Qué incluir en el informe y video
+
+1. Diagrama simple: Cliente Angular -> Pedidos -> Pagos -> Club Alan / MySQL.
+2. Una captura de la ruta exitosa y una de cada rechazo de pago.
+3. El reporte HTML de pytest y la consola Jenkins con sus etapas.
+4. Extractos de logs con el mismo `pedidoId` y los `correlationId` de cada
+   solicitud, ocultando cualquier variable de entorno y evitando incluir
+   contraseñas o tokens.
+5. Una nota de alcance: el despliegue de staging se activa solamente al llevar
+   esta rama a `QA`; esta rama de trabajo no despliega producción.

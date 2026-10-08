@@ -68,13 +68,14 @@ export class AdminAjustesComponent {
   restablecerPedidos(): void {
     this.confirmar(
       {
-        title: 'Restablecer pedidos de demostración',
-        message: 'Se borrarán todos los pedidos simulados de este navegador y se volverán a generar los de ejemplo.',
-        confirmText: 'Restablecer',
+        title: 'Recargar pedidos',
+        message: 'Se consultarán nuevamente los pedidos registrados por pedidos-service. No se modificará ningún dato.',
+        confirmText: 'Recargar',
       },
       () => {
-        this.pedidoService.restablecer();
-        this.notificaciones.success('Pedidos de demostración restablecidos');
+        this.pedidoService.recargar().subscribe({
+          next: () => this.notificaciones.success('Pedidos actualizados desde el servidor'),
+        });
       },
     );
   }

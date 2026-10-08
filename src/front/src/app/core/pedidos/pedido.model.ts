@@ -1,9 +1,9 @@
 /**
- * Estados definidos para PEDIDO.estado: RECIBIDO, EN PREPARACION, EN RUTA y ENTREGADO.
+ * Estados del ciclo de pedido. CANCELADO es terminal y solo se permite antes del pago.
  * Se escriben con guion bajo (EN_PREPARACION, EN_RUTA); si el back guarda el texto con
  * espacios, el ajuste va solo en este archivo.
  */
-export type EstadoPedido = 'RECIBIDO' | 'EN_PREPARACION' | 'EN_RUTA' | 'ENTREGADO';
+export type EstadoPedido = 'RECIBIDO' | 'EN_PREPARACION' | 'EN_RUTA' | 'ENTREGADO' | 'CANCELADO';
 /** Modalidad del pedido: PEDIDO.modalidad. */
 export type TipoPedido = 'LLEVAR' | 'DOMICILIO';
 /** Clase de pedido: PEDIDO.id_tipo_pedido (TIPO_PEDIDO). SUSCRIPCION vende la membresia Club Alan. */
@@ -15,6 +15,7 @@ export interface LineaPedido {
   detalle: string;
   precio: number;
   cantidad: number;
+  observaciones?: string | null;
 }
 
 export interface Pedido {
@@ -29,6 +30,9 @@ export interface Pedido {
   lineas: LineaPedido[];
   total: number;
   creadoEn: string;
+  observaciones?: string | null;
+  /** Estado de pago que devuelve pagos-service cuando el pedido ya fue cobrado. */
+  pagoEstado?: EstadoPago;
 }
 
 export interface NuevoPedido {
@@ -38,15 +42,27 @@ export interface NuevoPedido {
   clase?: ClasePedido;
   direccion: string | null;
   lineas: LineaPedido[];
+  observaciones?: string | null;
 }
 
-export const ESTADOS_PEDIDO: EstadoPedido[] = ['RECIBIDO', 'EN_PREPARACION', 'EN_RUTA', 'ENTREGADO'];
+export type EstadoPago = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
+
+export const ESTADOS_PEDIDO: EstadoPedido[] = [
+  'RECIBIDO',
+  'EN_PREPARACION',
+  'EN_RUTA',
+  'ENTREGADO',
+  'CANCELADO',
+];
+
+const ESTADOS_FLUJO: EstadoPedido[] = ['RECIBIDO', 'EN_PREPARACION', 'EN_RUTA', 'ENTREGADO'];
 
 export const ETIQUETA_ESTADO: Record<EstadoPedido, string> = {
   RECIBIDO: 'Recibido',
   EN_PREPARACION: 'En preparación',
   EN_RUTA: 'En ruta',
   ENTREGADO: 'Entregado',
+  CANCELADO: 'Cancelado',
 };
 
 export const ETIQUETA_TIPO: Record<TipoPedido, string> = {
@@ -60,6 +76,7 @@ export const CLASE_ESTADO: Record<EstadoPedido, string> = {
   EN_PREPARACION: 'adm-tag--mustard',
   EN_RUTA: 'adm-tag--green',
   ENTREGADO: '',
+  CANCELADO: 'adm-tag--chile',
 };
 
 export function esSuscripcion(pedido: Pick<Pedido, 'clase'>): boolean {
@@ -76,11 +93,16 @@ export function etiquetaTipoPedido(pedido: Pick<Pedido, 'tipo' | 'clase'>): stri
  * para llevar pasa directo de "En preparación" a "Entregado". Una suscripcion no se
  * prepara ni se envia: pasa de "Recibido" a "Entregado" (membresia activada).
  */
-export function flujoDe(pedido: Pick<Pedido, 'tipo' | 'clase'>): EstadoPedido[] {
+export function flujoDe(pedido: Pick<Pedido, 'tipo' | 'clase' | 'estado'>): EstadoPedido[] {
+  if (pedido.estado === 'CANCELADO') {
+    return ['CANCELADO'];
+  }
   if (esSuscripcion(pedido)) {
     return ['RECIBIDO', 'ENTREGADO'];
   }
-  return pedido.tipo === 'DOMICILIO' ? ESTADOS_PEDIDO : ESTADOS_PEDIDO.filter((e) => e !== 'EN_RUTA');
+  return pedido.tipo === 'DOMICILIO'
+    ? ESTADOS_FLUJO
+    : ESTADOS_FLUJO.filter((estado) => estado !== 'EN_RUTA');
 }
 
 export function siguienteEstado(pedido: Pick<Pedido, 'tipo' | 'clase' | 'estado'>): EstadoPedido | null {
@@ -90,6 +112,9 @@ export function siguienteEstado(pedido: Pick<Pedido, 'tipo' | 'clase' | 'estado'
 
 /** Texto del boton que avanza el pedido; vacio si ya esta entregado. */
 export function accionDe(pedido: Pick<Pedido, 'tipo' | 'clase' | 'estado'>): string {
+  if (pedido.estado === 'CANCELADO') {
+    return '';
+  }
   if (esSuscripcion(pedido)) {
     return pedido.estado === 'RECIBIDO' ? 'Activar membresía' : '';
   }

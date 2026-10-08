@@ -20,6 +20,7 @@ const ETIQUETA_FILTRO: Record<EstadoPedido, string> = {
   EN_PREPARACION: 'En preparación',
   EN_RUTA: 'En ruta',
   ENTREGADO: 'Entregados',
+  CANCELADO: 'Cancelados',
 };
 
 @Component({
@@ -100,7 +101,7 @@ export class AdminPedidosComponent {
 
   avanzar(pedido: Pedido, evento?: Event): void {
     evento?.stopPropagation();
-    this.pedidoService.avanzar(pedido.id).subscribe();
+    this.pedidoService.avanzar(pedido.id).subscribe({ error: () => undefined });
   }
 
   alternar(id: number): void {

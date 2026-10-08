@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { finalize } from 'rxjs';
+import { catchError, finalize, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { MenuItem } from '../../../core/data/menu.data';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -14,6 +14,7 @@ import {
 } from '../../../core/pedidos/pedido.model';
 import { PedidoService } from '../../../core/pedidos/pedido.service';
 import { MenuService } from '../services/menu.service';
+import { ClubAlanService } from '../../club-alan/services/club-alan.service';
 
 @Component({
   selector: 'app-cliente-inicio',
@@ -26,6 +27,7 @@ export class ClienteInicioComponent {
   private readonly router = inject(Router);
   private readonly pedidoService = inject(PedidoService);
   private readonly menuService = inject(MenuService);
+  private readonly clubAlanService = inject(ClubAlanService);
   private readonly notificaciones = inject(NotificationService);
 
   readonly usuario = inject(AuthService).usuario;
@@ -39,23 +41,28 @@ export class ClienteInicioComponent {
   readonly suscribiendo = signal(false);
 
   private readonly misPedidos = computed(() => {
-    const id = this.usuario()?.id;
+    const id = this.pedidoService.clienteActualId();
     return this.pedidoService
       .pedidos()
       .filter((p) => p.idCliente === id)
       .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn));
   });
 
-  readonly activo = computed(() => this.misPedidos().find((p) => p.estado !== 'ENTREGADO') ?? null);
+  readonly activo = computed(
+    () => this.misPedidos().find((p) => p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO') ?? null,
+  );
   readonly historial = computed(() => this.misPedidos().filter((p) => p.estado === 'ENTREGADO'));
 
-  readonly esMiembro = computed(() => this.usuario()?.miembroClub ?? false);
+  /** El estado visible se consulta al servicio real de Club Alan, no al mock de sesión. */
+  readonly esMiembro = signal(false);
   /** Se ofrece la suscripcion si no es miembro, no tiene una en curso y el catalogo tiene el producto. */
   readonly ofrecerClub = computed(
     () =>
       !this.esMiembro() &&
       this.productoClub() !== null &&
-      !this.misPedidos().some((p) => esSuscripcion(p) && p.estado !== 'ENTREGADO'),
+      !this.misPedidos().some(
+        (p) => esSuscripcion(p) && p.estado !== 'ENTREGADO' && p.estado !== 'CANCELADO',
+      ),
   );
 
   /** Etapas del pedido activo: hechas, en curso o pendientes. */
@@ -74,6 +81,14 @@ export class ClienteInicioComponent {
 
   constructor() {
     this.menuService.cargar().subscribe(({ suscripcion }) => this.productoClub.set(suscripcion));
+    const idCliente = this.pedidoService.clienteActualId();
+    if (idCliente !== null) {
+      this.clubAlanService.obtenerPuntos(idCliente, true).pipe(
+        catchError(() => of(null)),
+      ).subscribe({
+        next: (puntos) => this.esMiembro.set(puntos?.miembroClub ?? false),
+      });
+    }
   }
 
   fecha(iso: string): string {
@@ -84,18 +99,22 @@ export class ClienteInicioComponent {
     this.router.navigate(['/cliente/pedir'], { state: { repetir: pedido.lineas } });
   }
 
+  irAPago(pedido: Pedido): void {
+    this.router.navigate(['/cliente/pago', pedido.id]);
+  }
+
   /** Crea un pedido de clase SUSCRIPCION cuyo producto es el servicio "Club Alan". */
   suscribirse(): void {
-    const usuario = this.usuario();
     const producto = this.productoClub();
-    if (!usuario || !producto) {
+    const idCliente = this.pedidoService.clienteActualId();
+    if (!producto || idCliente === null) {
       return;
     }
     this.suscribiendo.set(true);
     this.pedidoService
       .crear({
-        idCliente: usuario.id,
-        cliente: `${usuario.nombre} ${usuario.apellido.charAt(0)}.`,
+        idCliente,
+        cliente: 'Cliente Club Alan',
         tipo: 'LLEVAR',
         clase: 'SUSCRIPCION',
         direccion: null,
@@ -110,8 +129,9 @@ export class ClienteInicioComponent {
         ],
       })
       .pipe(finalize(() => this.suscribiendo.set(false)))
-      .subscribe((pedido) =>
-        this.notificaciones.success(`Solicitud #${pedido.id} enviada. Te avisaremos cuando tu membresía esté activa.`),
-      );
+      .subscribe((pedido) => {
+        this.notificaciones.success(`Solicitud #${pedido.id} creada. Completa el pago para activar tu membresía.`);
+        this.router.navigate(['/cliente/pago', pedido.id]);
+      });
   }
 }
