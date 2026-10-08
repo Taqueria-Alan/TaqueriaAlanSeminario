@@ -36,3 +36,6 @@ docker/.env
 ### Python ###
 __pycache__/
 *.py[cod]
+
+### Generated test evidence ###
+reports/

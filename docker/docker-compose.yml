@@ -53,7 +53,18 @@ services:
     command:
       - /bin/sh
       - -ec
-      - mysql --protocol=tcp -h mysql -u"$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" "$${MYSQL_DATABASE}" < /migrations/04-pedidos-pagos.sql
+      - |
+        attempt=1
+        until mysqladmin --protocol=tcp ping -h mysql -u"$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" --silent; do
+          if [ "$$attempt" -ge 30 ]; then
+            echo "MySQL no estuvo disponible para aplicar la migracion tras 30 intentos" >&2
+            exit 1
+          fi
+          echo "Esperando MySQL para aplicar la migracion ($$attempt/30)..."
+          attempt=$$((attempt + 1))
+          sleep 2
+        done
+        mysql --protocol=tcp -h mysql -u"$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" "$${MYSQL_DATABASE}" < /migrations/04-pedidos-pagos.sql
     networks:
       - taqueria-network
 

@@ -85,6 +85,8 @@ formato esperado, no una transcripción de datos productivos.
 Con Docker Desktop en estado **Engine running**, desde la raíz del repositorio:
 
 ```powershell
+# En equipos con memoria limitada, evita compilar los cinco servicios Java en paralelo.
+$env:COMPOSE_PARALLEL_LIMIT = '1'
 docker compose -f docker/docker-compose.yml build
 docker compose -f docker/docker-compose.yml up -d
 docker compose -f docker/docker-compose.yml ps
@@ -114,7 +116,12 @@ $env:CLUB_URL = 'http://localhost:8085'
 .\.venv\Scripts\python.exe -m pytest tests/ --junitxml=reports/pytest.xml --html=reports/report.html --self-contained-html
 ```
 
-El resultado esperado es `27 passed` y se generan `reports/pytest.xml` y
+Si el staging local ya ocupa los puertos `8081` a `8085`, el mismo despliegue
+puede levantarse de forma aislada con el proyecto
+`taqueria-pedidos-verify` y los puertos `18081` a `18085`; así se evita
+interrumpir Jenkins o staging durante la demostración.
+
+El resultado verificado es `28 passed` y se generan `reports/pytest.xml` y
 `reports/report.html`. Jenkins ejecuta estos mismos archivos con puertos
 efímeros, publica el XML como JUnit y el HTML como **Pytest HTML**.
 
@@ -123,12 +130,17 @@ efímeros, publica el XML como JUnit y el HTML como **Pytest HTML**.
 | Verificación | Resultado | Evidencia |
 | --- | --- | --- |
 | Compilación de Angular | Aprobada | `npm run build` finalizó correctamente y generó `dist/front`. |
-| Descubrimiento de pruebas | Aprobado | `pytest --collect-only` encontró 27 pruebas: 15 smoke y 12 de flujo API. |
+| Descubrimiento de pruebas | Aprobado | `pytest --collect-only` encontró 28 pruebas: 15 smoke y 13 de flujo API. |
 | Formato de cambios | Aprobado | `git diff --check` no reportó errores de espacios. |
-| Ejecución Docker de integración | Pendiente del motor local | El cliente de Docker no encontró el pipe `dockerDesktopLinuxEngine`; el código y los comandos quedan preparados, pero no se debe afirmar una ejecución de contenedores hasta que Docker Desktop indique **Engine running**. |
+| Migración sobre base local existente | Aprobada | El contenedor `db-migrations` espera la disponibilidad TCP de MySQL y ejecuta `04-pedidos-pagos.sql`; la migración consulta `information_schema` antes de agregar columnas o índices. |
+| Motor Docker Desktop | Recuperado | Se actualizó Docker Desktop y se realizó un reinicio controlado del motor, sin restablecer valores de fábrica ni eliminar volúmenes. El engine respondió como `29.8.2` y Jenkins, staging y el entorno aislado volvieron a levantar. |
+| Ejecución Docker de integración | Aprobada | Con los servicios reales en el proyecto aislado, `pytest` ejecutó 28 pruebas; `pytest.xml` registra `tests=28`, `failures=0` y `errors=0`. |
+| Reportes de pruebas | Aprobados | Se generaron `reports/pytest.xml` (JUnit) y `reports/report.html` (Pytest HTML) tras la ejecución integrada. |
 
-Esta separación permite documentar con precisión lo comprobado y evita
-presentar resultados simulados como una ejecución real.
+La ejecución integrada cubrió creación de orden, recálculo de total en backend,
+tarjeta inválida, fondos insuficientes, edición y cancelación antes del pago,
+idempotencia por pedido, entrega para llevar y domicilio, Club Alan y la
+protección que impide sustituir el SKU de membresía por un producto ordinario.
 
 ## Límites declarados antes de producción
 

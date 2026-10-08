@@ -91,6 +91,12 @@ public class PedidoServiceImpl implements PedidoService {
         Pedido pedido = obtenerPedido(idPedido);
         validarEditable(pedido);
         validarDireccion(request.tipo(), request.direccion());
+        // La clase no se puede cambiar desde esta operación. Si el pedido ya
+        // representa una suscripción, sus líneas deben seguir siendo el SKU
+        // oficial de Club Alan antes de aceptar la edición.
+        ClasePedido claseActual = Long.valueOf(TIPO_SUSCRIPCION).equals(pedido.getIdTipoPedido())
+                ? ClasePedido.SUSCRIPCION : ClasePedido.NORMAL;
+        validarClasePedido(claseActual, request.lineas());
         pedido.setModalidad(request.tipo());
         pedido.setDireccionEntrega(normalizarDireccion(request.tipo(), request.direccion()));
         pedido.setObservaciones(textoOpcional(request.observaciones()));
@@ -123,7 +129,7 @@ public class PedidoServiceImpl implements PedidoService {
     @Transactional
     public PedidoResponse avanzar(Long idPedido, String correlationId) {
         Pedido pedido = obtenerPedido(idPedido);
-        if (!pedidoRepository.existePagoAprobado(idPedido)) {
+        if (pedidoRepository.contarPagosAprobados(idPedido) == 0) {
             throw new BusinessException("PAGO_PENDIENTE", "No se puede avanzar un pedido sin pago aprobado",
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -199,7 +205,7 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     private void validarEditable(Pedido pedido) {
-        if (pedidoRepository.existePagoAprobado(pedido.getIdPedido())) {
+        if (pedidoRepository.contarPagosAprobados(pedido.getIdPedido()) > 0) {
             throw new BusinessException("PEDIDO_PAGADO",
                     "El pedido ya fue pagado y no puede modificarse ni cancelarse", HttpStatus.UNPROCESSABLE_ENTITY);
         }

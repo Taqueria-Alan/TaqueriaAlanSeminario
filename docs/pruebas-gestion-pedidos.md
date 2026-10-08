@@ -20,12 +20,13 @@ No utiliza credenciales, tarjetas reales ni datos productivos. Los servicios se 
 | CLUB-01 | Pagar una suscripción Club Alan | El pedido termina en `ENTREGADO` y la membresía del cliente queda activa. |
 | CLUB-02 | Pagar un pedido normal de un miembro | Se registra una única acumulación de puntos para el ID de pedido. |
 | CLUB-03 | Marcar un producto común como suscripción | HTTP 400 y código `SUSCRIPCION_INVALIDA`; solo el SKU oficial de membresía activa Club Alan. |
+| CLUB-04 | Editar una suscripción válida antes de pagarla | HTTP 400 y código `SUSCRIPCION_INVALIDA` si se intenta reemplazar el SKU de membresía por un producto común. |
 | SMK-01 a SMK-15 | Disponibilidad de Auth, Catálogo, Pedidos y Pagos | URL válida, respuesta HTTP sin 5xx, carga en Chromium Headless y puertos distintos. |
 
 ## Evidencia que se debe conservar
 
 1. `reports/pytest.xml` y `reports/report.html` publicados por Jenkins.
 2. El identificador de correlación `pytest-pedidos-...` de los logs de `pedidos-service` y `pagos-service`; permite relacionar una prueba con creación, pago, cancelación o avance sin registrar información sensible.
-3. La consola de Jenkins con las 27 pruebas aprobadas y las etapas Checkout, Build, Test y Deploy Staging.
+3. La consola de Jenkins con las 28 pruebas aprobadas y las etapas Checkout, Build, Test y Deploy Staging.
 
 Los únicos PAN de demostración se declaran dentro de la suite para la simulación local: un número válido de sandbox, uno de formato inválido y uno que termina en `0002` para representar fondos insuficientes. Nunca se debe sustituirlos por una tarjeta real ni añadir CVV.

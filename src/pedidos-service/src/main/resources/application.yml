@@ -13,6 +13,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+      naming:
+        # El esquema heredado usa tablas en mayúsculas y MySQL sobre Linux
+        # distingue CLIENTE de cliente. Se conserva el contrato físico exacto.
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     open-in-view: false
   data:
     redis:

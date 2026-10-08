@@ -2,7 +2,6 @@ package com.taqueriaalan.pagos.service;
 
 import com.taqueriaalan.pagos.dto.PagoRequest;
 import com.taqueriaalan.pagos.dto.PagoResponse;
-import com.taqueriaalan.pagos.dto.PuntosResponse;
 import com.taqueriaalan.pagos.exception.BusinessException;
 import com.taqueriaalan.pagos.exception.PaymentDeclinedException;
 import com.taqueriaalan.pagos.exception.ResourceNotFoundException;
@@ -12,12 +11,12 @@ import com.taqueriaalan.pagos.model.Pago;
 import com.taqueriaalan.pagos.model.Pedido;
 import com.taqueriaalan.pagos.repository.PagoRepository;
 import com.taqueriaalan.pagos.repository.PedidoRepository;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -31,7 +30,7 @@ public class PagoServiceImpl implements PagoService {
 
     private final PagoRepository pagoRepository;
     private final PedidoRepository pedidoRepository;
-    private final ClubAlanClient clubAlanClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(noRollbackFor = PaymentDeclinedException.class)
@@ -73,7 +72,8 @@ public class PagoServiceImpl implements PagoService {
         log.info("event=pago.aprobado correlationId={} pedidoId={} pagoId={} monto={} pedidoEstado={}",
                 correlationId, pedido.getIdPedido(), guardado.getIdPago(), guardado.getMonto(), pedido.getEstado());
 
-        coordinarClubAlan(pedido, suscripcion, correlationId);
+        eventPublisher.publishEvent(new PagoAprobadoEvent(
+                pedido.getIdPedido(), pedido.getIdCliente(), pedido.getTotal(), suscripcion, correlationId));
         return toResponse(guardado, pedido, false);
     }
 
@@ -124,24 +124,6 @@ public class PagoServiceImpl implements PagoService {
         pago.setCodigoResultado(code);
         pago.setMotivoRechazo(motive);
         return pago;
-    }
-
-    private void coordinarClubAlan(Pedido pedido, boolean suscripcion, String correlationId) {
-        try {
-            if (suscripcion) {
-                clubAlanClient.activarMembresia(pedido.getIdCliente(), pedido.getIdPedido());
-                return;
-            }
-            PuntosResponse puntos = clubAlanClient.obtenerPuntos(pedido.getIdCliente());
-            int porAcumular = pedido.getTotal().divide(BigDecimal.TEN, 0, java.math.RoundingMode.FLOOR).intValue();
-            if (Boolean.TRUE.equals(puntos.miembroClub()) && porAcumular > 0) {
-                clubAlanClient.acumular(pedido.getIdCliente(), pedido.getIdPedido(), porAcumular);
-            }
-        } catch (Exception error) {
-            // El pago aprobado no se revierte por una indisponibilidad temporal del programa de lealtad.
-            log.warn("event=club.pendiente correlationId={} pedidoId={} reason={}", correlationId,
-                    pedido.getIdPedido(), error.getClass().getSimpleName());
-        }
     }
 
     private Pedido obtenerPedido(Long idPedido) {

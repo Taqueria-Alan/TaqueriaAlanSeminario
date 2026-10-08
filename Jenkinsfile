@@ -20,7 +20,9 @@ pipeline {
                 sh '''
                     set -eu
                     mvn -B -ntp clean verify
-                    IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
+                    # Los microservicios Java consumen bastante memoria al resolver Maven.
+                    # En Docker Desktop se construyen de uno en uno para evitar agotar el motor.
+                    COMPOSE_PARALLEL_LIMIT=1 IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
                       docker compose -f docker/docker-compose.yml build \
                       auth-service catalogo-service pedidos-service pagos-service club-alan-service
                 '''

@@ -381,6 +381,30 @@ def test_subscription_cannot_use_an_ordinary_menu_product(
     assert response.json()["code"] == "SUSCRIPCION_INVALIDA"
 
 
+def test_subscription_cannot_be_edited_to_an_ordinary_product_before_payment(
+    http: requests.Session,
+    producto_membresia: dict[str, Any],
+    producto_disponible: dict[str, Any],
+) -> None:
+    """Editing must not turn a valid Club Alan subscription into a normal SKU."""
+    suscripcion = crear_pedido(
+        http,
+        producto_membresia,
+        extra={"clase": "SUSCRIPCION"},
+    )
+    response = http.put(
+        f"{PEDIDOS_URL}/api/pedidos/{suscripcion['id']}",
+        json={
+            "tipo": "LLEVAR",
+            "lineas": [{"idProducto": producto_disponible["idProducto"], "cantidad": 1}],
+        },
+        headers=correlation_headers(),
+        timeout=TIMEOUT_SECONDS,
+    )
+    assert_status(response, 400)
+    assert response.json()["code"] == "SUSCRIPCION_INVALIDA"
+
+
 def test_subscription_activates_club_and_a_following_order_accrues_points(
     http: requests.Session,
     producto_membresia: dict[str, Any],
