@@ -49,9 +49,12 @@ export class ClubAlanService {
     idCliente: number,
     page: number,
     size: number,
+    silencioso = false,
   ): Observable<Page<MovimientoPuntos>> {
+    const context = new HttpContext().set(OMITIR_NOTIFICACION_ERROR, silencioso);
     return this.http.get<Page<MovimientoPuntos>>(`${this.baseUrl}/${idCliente}/movimientos`, {
       params: { page: String(page), size: String(size), sort: 'fecha,desc' },
+      context,
     });
   }
 

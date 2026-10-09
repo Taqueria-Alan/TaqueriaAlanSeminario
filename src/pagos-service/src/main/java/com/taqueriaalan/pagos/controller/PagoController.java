@@ -3,6 +3,7 @@ package com.taqueriaalan.pagos.controller;
 import com.taqueriaalan.pagos.dto.PagoRequest;
 import com.taqueriaalan.pagos.dto.PagoResponse;
 import com.taqueriaalan.pagos.service.PagoService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +28,24 @@ public class PagoController {
     public ResponseEntity<PagoResponse> procesar(
             @Valid @RequestBody PagoRequest request,
             @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
-            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId) {
+            @RequestHeader(value = "X-Correlation-Id", required = false) String correlationId,
+            HttpServletRequest httpRequest) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(pagoService.procesar(request, idempotencyKey, correlation(correlationId)));
+                .body(pagoService.procesar(request, idempotencyKey, correlation(correlationId),
+                        idCliente(httpRequest), rol(httpRequest)));
     }
 
     @GetMapping("/{idPedido}")
-    public ResponseEntity<PagoResponse> obtener(@PathVariable Long idPedido) {
-        return ResponseEntity.ok(pagoService.obtenerPorPedido(idPedido));
+    public ResponseEntity<PagoResponse> obtener(@PathVariable Long idPedido, HttpServletRequest httpRequest) {
+        return ResponseEntity.ok(pagoService.obtenerPorPedido(idPedido, idCliente(httpRequest), rol(httpRequest)));
+    }
+
+    private Long idCliente(HttpServletRequest request) {
+        return (Long) request.getAttribute("idCliente");
+    }
+
+    private String rol(HttpServletRequest request) {
+        return (String) request.getAttribute("rol");
     }
 
     private String correlation(String correlationId) {

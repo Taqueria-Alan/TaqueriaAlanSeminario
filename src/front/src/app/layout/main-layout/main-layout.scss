@@ -1,17 +1,26 @@
-$color-ink: var(--alan-ink-2);
-$color-ink-dark: var(--alan-ink);
-$color-yellow: var(--alan-mustard);
-$color-cream: var(--alan-cream);
+// Mismo lenguaje que el landing: menu lateral y barra superior en crema, tipografia
+// de marca en Bricolage, seleccion en tinta y detalles en mostaza.
+$ink: var(--alan-ink);
+$cream: var(--alan-cream);
+$tint: var(--alan-cream-2);
+$line: var(--alan-line);
+$mustard: var(--alan-mustard);
+$gutter: clamp(20px, 4vw, 48px);
 
 .layout {
   height: 100vh;
+  background: $cream;
+}
+
+mat-sidenav-content {
+  background: $cream;
 }
 
 .sidenav {
-  width: 260px;
-  background: $color-ink-dark;
-  color: $color-cream;
-  border-right: 4px solid $color-yellow;
+  width: 268px;
+  background: $tint;
+  color: $ink;
+  border-right: 1px solid $line;
   --mat-sidenav-container-shape: 0;
   border-radius: 0;
 
@@ -19,16 +28,14 @@ $color-cream: var(--alan-cream);
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 20px 16px;
+    padding: 24px 20px 20px;
     text-decoration: none;
     color: inherit;
-    border-bottom: 1px solid rgba(255, 248, 230, 0.12);
   }
 
   .brand__logo {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
+    width: 40px;
+    height: 50px;
     object-fit: contain;
     flex-shrink: 0;
   }
@@ -36,43 +43,59 @@ $color-cream: var(--alan-cream);
   .brand__text {
     display: flex;
     flex-direction: column;
-    font-weight: 700;
-    font-size: 16px;
-    line-height: 1.25;
+    font-family: var(--alan-display);
+    font-weight: 800;
+    font-size: 21px;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
 
     small {
-      font-weight: 400;
+      margin-top: 4px;
+      color: var(--alan-muted);
+      font-family: var(--alan-font);
+      font-weight: 600;
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      opacity: 0.65;
+      letter-spacing: 0.12em;
     }
   }
 
   mat-nav-list {
-    padding-top: 8px;
+    padding: 4px 12px 16px;
 
-    --mat-list-list-item-label-text-color: #{$color-cream};
+    --mat-list-list-item-label-text-color: #{$ink};
+    --mat-list-list-item-leading-icon-color: var(--alan-green-dark);
+    --mat-list-list-item-hover-label-text-color: #{$ink};
+    --mat-list-list-item-focus-label-text-color: #{$ink};
+    --mat-list-list-item-hover-leading-icon-color: var(--alan-green-dark);
+    --mat-list-list-item-hover-state-layer-color: #{$ink};
+    --mat-list-list-item-focus-state-layer-color: #{$ink};
     --mat-list-list-item-trailing-supporting-text-color: #fff;
-    --mat-list-list-item-hover-label-text-color: #{$color-cream};
-    --mat-list-list-item-focus-label-text-color: #{$color-cream};
-    --mat-list-list-item-leading-icon-color: #{$color-yellow};
-    --mat-list-list-item-hover-leading-icon-color: #{$color-yellow};
-    --mat-list-list-item-hover-state-layer-color: #{$color-yellow};
-    --mat-list-list-item-focus-state-layer-color: #{$color-yellow};
+    --mat-list-list-item-container-shape: 14px;
   }
 
+  .mat-mdc-list-item {
+    font-weight: 600;
+  }
+
+  // Seccion activa: pastilla de tinta, como los botones principales del landing.
   .active-link {
-    background-color: rgba(244, 184, 46, 0.2);
+    background-color: $ink;
+    --mat-list-list-item-label-text-color: #{$cream};
+    --mat-list-list-item-hover-label-text-color: #{$cream};
+    --mat-list-list-item-focus-label-text-color: #{$cream};
+    --mat-list-list-item-leading-icon-color: #{$mustard};
+    --mat-list-list-item-hover-leading-icon-color: #{$mustard};
+    --mat-list-list-item-hover-state-layer-color: #{$cream};
   }
 }
 
 .nav-label {
-  padding: 16px 24px 4px;
-  color: rgba(255, 244, 220, 0.55);
+  padding: 20px 16px 6px;
+  color: var(--alan-muted);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -88,37 +111,89 @@ $color-cream: var(--alan-cream);
 }
 
 .logout-link {
-  --mat-list-list-item-label-text-color: #ffb4a8;
-  --mat-list-list-item-hover-label-text-color: #ffb4a8;
-  --mat-list-list-item-leading-icon-color: #ffb4a8;
-  --mat-list-list-item-hover-leading-icon-color: #ffb4a8;
+  margin-top: 12px;
+  --mat-list-list-item-label-text-color: var(--alan-chile-dark);
+  --mat-list-list-item-hover-label-text-color: var(--alan-chile-dark);
+  --mat-list-list-item-leading-icon-color: var(--alan-chile-dark);
+  --mat-list-list-item-hover-leading-icon-color: var(--alan-chile-dark);
 }
 
 .app-toolbar {
+  font-family: var(--alan-font);
+  gap: 12px;
+  padding: 0 $gutter;
+  height: 72px;
+  background: rgba(251, 248, 243, 0.94);
+  color: $ink;
+  border-bottom: 1px solid $line;
+
   .spacer {
     flex: 1;
   }
 
+  &__title {
+    font-family: var(--alan-display);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  &__site {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-right: 8px;
+    border-bottom: 2px solid $ink;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover {
+      border-bottom-color: var(--alan-green);
+      color: var(--alan-green);
+    }
+  }
+
   &__user {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 42vw;
+    font-size: 15px;
+    font-weight: 600;
+
+    span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: $mustard;
+    color: $ink;
     font-size: 14px;
     font-weight: 700;
   }
 
-  background: $color-ink;
-  color: $color-cream;
-  gap: 12px;
-
   &__logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
+    width: 30px;
+    height: 38px;
     object-fit: contain;
   }
 }
 
 .contenido {
-  padding: clamp(20px, 4vw, 40px);
-  max-width: 1280px;
+  padding: clamp(24px, 4vw, 48px) $gutter 72px;
+  max-width: 1360px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;

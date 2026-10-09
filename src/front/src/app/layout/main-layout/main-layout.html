@@ -6,7 +6,7 @@
     class="sidenav"
   >
     <a class="brand" href="/" title="Ver sitio público">
-      <img class="brand__logo" src="images/logo-alan.png" alt="Logotipo Taquería Alan" />
+      <img class="brand__logo" src="images/logo.png" alt="Logotipo Taquería Alan" />
       <span class="brand__text">
         Taquería Alan
         <small>Panel administrativo</small>
@@ -41,12 +41,18 @@
         <button mat-icon-button (click)="drawer.toggle()" aria-label="Abrir menú">
           <mat-icon>menu</mat-icon>
         </button>
+        <img class="app-toolbar__logo" src="images/logo.png" alt="" />
+        <span class="app-toolbar__title">Taquería Alan</span>
       }
-      <img class="app-toolbar__logo" src="images/logo-alan.png" alt="" />
-      <span>Taquería Alan</span>
       <span class="spacer"></span>
+      @if (!isHandset()) {
+        <a class="app-toolbar__site" href="/" target="_blank" rel="noopener">Ver sitio público</a>
+      }
       @if (usuario(); as u) {
-        <span class="app-toolbar__user">{{ u.nombre }}</span>
+        <span class="app-toolbar__user">
+          <span class="app-toolbar__avatar" aria-hidden="true">{{ u.nombre.charAt(0).toUpperCase() }}</span>
+          <span>{{ u.nombre }}</span>
+        </span>
       }
     </mat-toolbar>
     <main class="contenido">

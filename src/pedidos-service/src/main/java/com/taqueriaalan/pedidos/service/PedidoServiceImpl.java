@@ -72,8 +72,10 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     @Transactional(readOnly = true)
-    public PedidoResponse obtener(Long idPedido) {
-        return toResponse(obtenerPedido(idPedido));
+    public PedidoResponse obtener(Long idPedido, Long idClienteAutenticado, String rol) {
+        Pedido pedido = obtenerPedido(idPedido);
+        verificarPertenencia(pedido, idClienteAutenticado, rol);
+        return toResponse(pedido);
     }
 
     @Override
@@ -87,8 +89,10 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     @Transactional
-    public PedidoResponse actualizar(Long idPedido, ActualizarPedidoRequest request, String correlationId) {
+    public PedidoResponse actualizar(Long idPedido, ActualizarPedidoRequest request, String correlationId,
+            Long idClienteAutenticado, String rol) {
         Pedido pedido = obtenerPedido(idPedido);
+        verificarPertenencia(pedido, idClienteAutenticado, rol);
         validarEditable(pedido);
         validarDireccion(request.tipo(), request.direccion());
         // La clase no se puede cambiar desde esta operación. Si el pedido ya
@@ -111,8 +115,10 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     @Transactional
-    public PedidoResponse cancelar(Long idPedido, CancelarPedidoRequest request, String correlationId) {
+    public PedidoResponse cancelar(Long idPedido, CancelarPedidoRequest request, String correlationId,
+            Long idClienteAutenticado, String rol) {
         Pedido pedido = obtenerPedido(idPedido);
+        verificarPertenencia(pedido, idClienteAutenticado, rol);
         validarEditable(pedido);
         pedido.setEstado(EstadoPedido.CANCELADO);
         pedido.setCanceladoEn(LocalDateTime.now());
@@ -224,6 +230,20 @@ public class PedidoServiceImpl implements PedidoService {
             return EstadoPedido.ENTREGADO;
         }
         return null;
+    }
+
+    /**
+     * Un CLIENTE solo puede ver/editar/cancelar sus propios pedidos; ADMIN no tiene
+     * restriccion. rol==null significa que el filtro de seguridad esta desactivado
+     * (perfil local sin SECURITY_ENABLED): no hay sesion que verificar.
+     */
+    private void verificarPertenencia(Pedido pedido, Long idClienteAutenticado, String rol) {
+        if (rol == null || "ADMIN".equals(rol)) {
+            return;
+        }
+        if (idClienteAutenticado == null || !idClienteAutenticado.equals(pedido.getIdCliente())) {
+            throw new BusinessException("ACCESO_DENEGADO", "Este pedido no te pertenece", HttpStatus.FORBIDDEN);
+        }
     }
 
     private Pedido obtenerPedido(Long idPedido) {

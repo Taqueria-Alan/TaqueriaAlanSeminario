@@ -69,8 +69,9 @@ export class PedidoService {
     );
   }
 
-  obtener(id: number): Observable<Pedido> {
-    return this.http.get<PedidoApi>(`${environment.pedidosApiUrl}/${id}`).pipe(
+  obtener(id: number, silencioso = false): Observable<Pedido> {
+    const context = new HttpContext().set(OMITIR_NOTIFICACION_ERROR, silencioso);
+    return this.http.get<PedidoApi>(`${environment.pedidosApiUrl}/${id}`, { context }).pipe(
       map(normalizarPedido),
       tap((pedido) => this.guardar(pedido)),
     );

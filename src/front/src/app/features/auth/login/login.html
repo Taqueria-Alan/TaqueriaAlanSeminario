@@ -1,8 +1,7 @@
 <div class="auth">
   <aside class="auth__aside">
-    <span class="alan-bunting" aria-hidden="true"></span>
     <div class="aside__body">
-      <span class="alan-emblem aside__emblem"><img src="images/logo-alan.png" alt="Logotipo Taquería Alan" /></span>
+      <span class="alan-emblem aside__emblem"><img src="images/logo.png" alt="Logotipo Taquería Alan" /></span>
       <h2>Tu pedido favorito, a un clic.</h2>
       <p>Entra para repetir tus tacos de siempre y seguir tu pedido en tiempo real.</p>
     </div>
@@ -17,7 +16,7 @@
       <form class="auth__form" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
         <div>
           <h1>Bienvenido de vuelta</h1>
-          <p class="auth__sub">Inicia sesión para hacer tu pedido. El personal entra por aquí también.</p>
+          <p class="auth__sub">Inicia sesión para hacer tu pedido.</p>
         </div>
 
         @if (error()) {

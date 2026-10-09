@@ -2,16 +2,19 @@ package com.taqueriaalan.pedidos.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -19,11 +22,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Adaptador de seguridad listo para cuando auth-service emita JWT firmados.
- * En el perfil local queda explícitamente desactivado, sin fingir una validación.
+ * Valida la cookie de sesion que emite auth-service y deja idUsuario/rol/idCliente como
+ * atributos del request; el control de pertenencia (un CLIENTE solo ve sus propios
+ * pedidos) se hace en el controller/servicio, que si conoce el dominio de PEDIDO.
+ * Desactivado por completo si app.security.enabled=false (perfil local por defecto).
  */
 @Component
-public class JwtBearerFilter extends OncePerRequestFilter {
+public class JwtCookieFilter extends OncePerRequestFilter {
+
+    private static final String COOKIE_NAME = "taqueria_session";
 
     private final ObjectMapper objectMapper;
 
@@ -33,7 +40,7 @@ public class JwtBearerFilter extends OncePerRequestFilter {
     @Value("${app.security.jwt-secret:}")
     private String jwtSecret;
 
-    public JwtBearerFilter(ObjectMapper objectMapper) {
+    public JwtCookieFilter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -45,24 +52,37 @@ public class JwtBearerFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        String authorization = request.getHeader("Authorization");
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            unauthorized(response, "Falta un token Bearer válido");
+        Optional<String> token = leerCookie(request);
+        if (token.isEmpty()) {
+            unauthorized(response, "No hay una sesión activa");
             return;
         }
+
         try {
-            if (jwtSecret == null || jwtSecret.isBlank()) {
-                unauthorized(response, "La validación JWT no está configurada");
-                return;
-            }
             SecretKey key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-            Claims claims = Jwts.parser().verifyWith(key).build()
-                    .parseSignedClaims(authorization.substring(7)).getPayload();
-            request.setAttribute("jwtClaims", claims);
-            chain.doFilter(request, response);
-        } catch (RuntimeException exception) {
-            unauthorized(response, "El token JWT no es válido o expiró");
+            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token.get()).getPayload();
+            request.setAttribute("idUsuario", Long.valueOf(claims.getSubject()));
+            request.setAttribute("rol", claims.get("rol", String.class));
+            request.setAttribute("idCliente", claims.get("idCliente", Long.class));
+        } catch (JwtException | IllegalArgumentException exception) {
+            unauthorized(response, "La sesión no es válida o expiró");
+            return;
         }
+
+        chain.doFilter(request, response);
+    }
+
+    private Optional<String> leerCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return Optional.empty();
+        }
+        for (Cookie cookie : cookies) {
+            if (COOKIE_NAME.equals(cookie.getName())) {
+                return Optional.of(cookie.getValue());
+            }
+        }
+        return Optional.empty();
     }
 
     private void unauthorized(HttpServletResponse response, String message) throws IOException {
@@ -71,7 +91,7 @@ public class JwtBearerFilter extends OncePerRequestFilter {
         objectMapper.writeValue(response.getOutputStream(), Map.of(
                 "timestamp", LocalDateTime.now().toString(),
                 "status", HttpServletResponse.SC_UNAUTHORIZED,
-                "code", "JWT_INVALIDO",
+                "code", "SESION_INVALIDA",
                 "message", message));
     }
 }

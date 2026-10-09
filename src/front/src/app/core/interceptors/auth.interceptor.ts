@@ -1,17 +1,8 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
-const AUTH_TOKEN_KEY = 'taqueria_auth_token';
-
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem(AUTH_TOKEN_KEY);
-
-  if (!token) {
-    return next(req);
-  }
-
-  return next(
-    req.clone({
-      setHeaders: { Authorization: `Bearer ${token}` },
-    }),
-  );
-};
+/**
+ * La sesion viaja en una cookie httpOnly (nunca en localStorage ni en un header que el
+ * JS pueda leer o adjuntar a mano): esto solo asegura que el navegador la incluya en
+ * cada peticion a los microservicios, aunque esten en otro puerto/origen.
+ */
+export const authInterceptor: HttpInterceptorFn = (req, next) => next(req.clone({ withCredentials: true }));

@@ -31,3 +31,7 @@ app:
   club-alan:
     base-url: ${CLUB_ALAN_BASE_URL:http://localhost:8085}
     enabled: ${CLUB_ALAN_ENABLED:true}
+    internal-secret: ${JWT_SECRET:}
+  security:
+    enabled: ${SECURITY_ENABLED:true}
+    jwt-secret: ${JWT_SECRET:}

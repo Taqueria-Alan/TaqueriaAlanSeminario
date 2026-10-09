@@ -1,14 +1,16 @@
 export type Rol = 'CLIENTE' | 'ADMIN';
 
+/**
+ * id = idCliente cuando el rol es CLIENTE (el mismo id que usan pedidos-service,
+ * club-alan-service, etc.); idUsuario si es ADMIN. nombre es el nombre completo:
+ * auth-service solo guarda una columna de nombre, no nombre/apellido por separado.
+ */
 export interface Usuario {
   id: number;
   nombre: string;
-  apellido: string;
   email: string;
   telefono: string;
   rol: Rol;
-  /** Espejo simulado de CLIENTE.miembro_club; el valor real lo da club-alan-service. */
-  miembroClub?: boolean;
 }
 
 export interface LoginRequest {
@@ -22,4 +24,10 @@ export interface RegistroRequest {
   telefono: string;
   email: string;
   password: string;
+}
+
+export interface ActualizarPerfilRequest {
+  nombre: string;
+  email: string;
+  telefono: string;
 }

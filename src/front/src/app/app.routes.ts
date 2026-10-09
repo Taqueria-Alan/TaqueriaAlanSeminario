@@ -56,6 +56,13 @@ export const routes: Routes = [
             (m) => m.ClienteConfirmacionComponent,
           ),
       },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/cliente/cliente-perfil/cliente-perfil').then(
+            (m) => m.ClientePerfilComponent,
+          ),
+      },
     ],
   },
   {

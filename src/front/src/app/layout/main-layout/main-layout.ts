@@ -86,7 +86,6 @@ export class MainLayoutComponent {
   );
 
   cerrarSesion(): void {
-    this.auth.logout();
-    this.router.navigateByUrl('/');
+    this.auth.logout().subscribe(() => this.router.navigateByUrl('/'));
   }
 }

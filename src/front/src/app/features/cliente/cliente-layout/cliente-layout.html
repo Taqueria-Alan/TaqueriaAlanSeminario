@@ -1,36 +1,43 @@
 <div class="shell">
-  <aside class="side">
-    <a class="side__brand" routerLink="/" title="Ver sitio público">
-      <span class="alan-emblem side__emblem"><img src="images/logo-alan.png" alt="Logotipo Taquería Alan" /></span>
-      <span class="side__name">TAQUERÍA<br />ALAN</span>
+  <header class="top">
+    <a class="brand" routerLink="/" title="Ver sitio público">
+      <span class="alan-emblem brand__emblem"><img src="images/logo.png" alt="Logotipo Taquería Alan" /></span>
+      <span class="brand__name">Taquería Alan</span>
     </a>
 
-    <nav class="side__nav" aria-label="Panel de cliente">
-      <a routerLink="/cliente" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
-        <span class="material-symbols-outlined" aria-hidden="true">home</span>Inicio
-      </a>
-      <a routerLink="/cliente/pedir" routerLinkActive="is-active">
-        <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>Hacer pedido
-      </a>
+    <nav class="top__nav" aria-label="Panel de cliente">
+      <a routerLink="/cliente" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
+      <a routerLink="/cliente/pedir" routerLinkActive="is-active">Hacer pedido</a>
+      <a routerLink="/cliente/perfil" routerLinkActive="is-active">Mi perfil</a>
     </nav>
 
-    <div class="side__user">
+    <div class="top__user">
       @if (usuario(); as u) {
-        <div class="side__me">
-          <span class="side__avatar">{{ iniciales() }}</span>
-          <div>
-            <b>{{ u.nombre }} {{ u.apellido }}</b>
-            <small>Cliente</small>
-          </div>
-        </div>
+        <span class="top__me">
+          <span class="top__avatar">{{ iniciales() }}</span>
+          <span class="top__who">{{ u.nombre }}</span>
+        </span>
       }
-      <button type="button" class="side__logout" (click)="cerrarSesion()">
-        <span class="material-symbols-outlined" aria-hidden="true">logout</span>Cerrar sesión
+      <button type="button" class="top__logout" (click)="cerrarSesion()">
+        <span class="material-symbols-outlined" aria-hidden="true">logout</span><span class="top__label">Cerrar sesión</span>
       </button>
     </div>
-  </aside>
+  </header>
 
   <main class="main">
     <router-outlet />
   </main>
+
+  <!-- Barra inferior: solo en pantallas angostas (ver cliente-layout.scss). -->
+  <nav class="tabbar" aria-label="Navegación principal">
+    <a routerLink="/cliente" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+      <span class="material-symbols-outlined" aria-hidden="true">home</span>Inicio
+    </a>
+    <a routerLink="/cliente/pedir" routerLinkActive="is-active">
+      <span class="material-symbols-outlined" aria-hidden="true">shopping_bag</span>Pedir
+    </a>
+    <a routerLink="/cliente/perfil" routerLinkActive="is-active">
+      <span class="material-symbols-outlined" aria-hidden="true">person</span>Perfil
+    </a>
+  </nav>
 </div>

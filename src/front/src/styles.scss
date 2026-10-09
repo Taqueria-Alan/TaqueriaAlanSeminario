@@ -4,19 +4,22 @@
 @use '@angular/material' as mat;
 
 :root {
-  --alan-ink: #1b1813;
-  --alan-ink-2: #2a261f;
-  --alan-cream: #fff4dc;
-  --alan-cream-2: #f7e7bf;
-  --alan-mustard: #f4b82e;
-  --alan-green: #1f7a33;
-  --alan-green-dark: #14502a;
-  --alan-chile: #d5382a;
-  --alan-chile-dark: #b3281c;
-  --alan-orange: #f57c1f;
-  --alan-muted: #4a4234;
-  --alan-font: 'DM Sans', system-ui, sans-serif;
-  --alan-display: 'Bowlby One', 'DM Sans', sans-serif;
+  --alan-ink: #1e1b16;
+  --alan-ink-2: #2a2620;
+  --alan-cream: #fbf8f3;
+  --alan-cream-2: #f4eee3;
+  --alan-line: #e5ddcf;
+  --alan-mustard: #f2b632;
+  --alan-green: #1f6b3a;
+  --alan-green-dark: #17502c;
+  --alan-chile: #c23b2b;
+  --alan-chile-dark: #a52f22;
+  --alan-orange: #e8741c;
+  --alan-muted: #5b5348;
+  --alan-font: 'Instrument Sans', system-ui, sans-serif;
+  --alan-display: 'Bricolage Grotesque', 'Instrument Sans', sans-serif;
+  // Fondo plano y limpio: el color lo da la fotografia, no el papel.
+  --alan-texture: none;
 }
 
 html {
@@ -28,42 +31,44 @@ html {
         tertiary: mat.$red-palette,
       ),
       typography: (
-        plain-family: 'DM Sans, system-ui, sans-serif',
-        brand-family: 'Bowlby One, DM Sans, sans-serif',
+        plain-family: 'Instrument Sans, system-ui, sans-serif',
+        brand-family: 'Bricolage Grotesque, Instrument Sans, sans-serif',
       ),
       density: 0,
     )
   );
 
   // Paleta Taqueria Alan sobre el tema de Material.
-  --mat-sys-primary: #1f7a33;
+  --mat-sys-primary: #1f6b3a;
   --mat-sys-on-primary: #ffffff;
   --mat-sys-primary-container: #ddefd9;
-  --mat-sys-on-primary-container: #14502a;
+  --mat-sys-on-primary-container: #17502c;
   --mat-sys-secondary: #8a6a00;
   --mat-sys-secondary-container: #f9d58a;
   --mat-sys-on-secondary-container: #3a2c00;
-  --mat-sys-tertiary: #d5382a;
+  --mat-sys-tertiary: #c23b2b;
   --mat-sys-on-tertiary: #ffffff;
   --mat-sys-tertiary-container: #f6c2b8;
   --mat-sys-on-tertiary-container: #7a1d12;
-  --mat-sys-background: #fff4dc;
-  --mat-sys-surface: #fff9ea;
-  --mat-sys-surface-variant: #f3ebd8;
+  --mat-sys-background: #fbf8f3;
+  --mat-sys-surface: #fdfbf7;
+  --mat-sys-surface-variant: #f4eee3;
   --mat-sys-surface-container-lowest: #ffffff;
-  --mat-sys-surface-container-low: #fffbf0;
-  --mat-sys-surface-container: #f7efd9;
-  --mat-sys-surface-container-high: #f1e7cc;
-  --mat-sys-surface-container-highest: #ebe0c0;
-  --mat-sys-on-surface: #1b1813;
-  --mat-sys-on-surface-variant: #4a4234;
-  --mat-sys-outline: #8a806c;
-  --mat-sys-outline-variant: #d9cca8;
+  --mat-sys-surface-container-low: #fdfbf7;
+  --mat-sys-surface-container: #f6f1e8;
+  --mat-sys-surface-container-high: #f0e9dc;
+  --mat-sys-surface-container-highest: #eae2d3;
+  --mat-sys-on-surface: #1e1b16;
+  --mat-sys-on-surface-variant: #5b5348;
+  --mat-sys-outline: #8c8372;
+  --mat-sys-outline-variant: #e5ddcf;
 }
 
 body {
   color-scheme: light;
   background-color: var(--alan-cream);
+  background-image: var(--alan-texture);
+  background-attachment: fixed;
   color: var(--alan-ink);
   font: var(--mat-sys-body-medium);
   font-family: var(--alan-font);
@@ -78,8 +83,10 @@ a {
 // Encabezado de pagina del panel (lo usan las pantallas de catalogo y Club Alan).
 .page-header h2 {
   font-family: var(--alan-display);
-  font-weight: 400;
-  letter-spacing: -0.2px;
+  font-weight: 800;
+  font-size: clamp(32px, 3.6vw, 48px);
+  line-height: 1.04;
+  letter-spacing: -0.045em;
 }
 
 // Notificaciones (NotificationService).
@@ -99,25 +106,20 @@ a {
 // Componentes de marca compartidos
 // ---------------------------------------------------------------------------
 
-// Logo circular recortado.
+// Logo (cactus con sombrero y letrero): sin recorte circular, se ajusta dentro de su caja.
 .alan-emblem {
   display: block;
   flex: none;
-  overflow: hidden;
-  border-radius: 50%;
-  border: 3px solid var(--alan-ink);
-  background: var(--alan-ink);
 
   img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
-    transform: scale(1.06);
+    object-fit: contain;
   }
 }
 
-// Boton con borde grueso y sombra solida.
+// Boton: color plano, esquinas redondeadas, sin bordes ni sombras.
 .alan-btn {
   display: inline-flex;
   align-items: center;
@@ -126,21 +128,24 @@ a {
   min-height: 48px;
   box-sizing: border-box;
   padding: 0 24px;
-  border: 3px solid var(--alan-ink);
-  border-radius: 999px;
-  background: var(--alan-cream);
+  border: 0;
+  border-radius: 14px;
+  background: var(--alan-cream-2);
   color: var(--alan-ink);
-  font: 700 16px/1 var(--alan-font);
+  font: 600 16px/1 var(--alan-font);
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 4px 4px 0 var(--alan-ink);
   transition:
-    transform 0.12s,
-    box-shadow 0.12s;
+    background-color 0.15s,
+    filter 0.15s;
 
   &:hover:not(:disabled) {
-    transform: translate(2px, 2px);
-    box-shadow: 2px 2px 0 var(--alan-ink);
+    filter: brightness(0.94);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--alan-mustard);
+    outline-offset: 2px;
   }
 
   &:disabled {
@@ -152,12 +157,15 @@ a {
     min-height: 56px;
     padding: 0 32px;
     font-size: 18px;
-    box-shadow: 5px 5px 0 var(--alan-ink);
   }
 
   &--block {
     display: flex;
     width: 100%;
+  }
+
+  &--pill {
+    border-radius: 999px;
   }
 
   &--green {
@@ -179,6 +187,16 @@ a {
     background: var(--alan-mustard);
     color: var(--alan-ink);
   }
+
+  &--outline {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px var(--alan-line);
+
+    &:hover:not(:disabled) {
+      background: var(--alan-cream-2);
+      filter: none;
+    }
+  }
 }
 
 // Campos de formulario de login / registro.
@@ -198,15 +216,15 @@ a {
     box-sizing: border-box;
     width: 100%;
     padding: 0 16px;
-    border: 3px solid var(--alan-ink);
+    border: 1px solid var(--alan-line);
     border-radius: 14px;
     background: #fff;
     color: var(--alan-ink);
     font: 400 17px var(--alan-font);
 
     &:focus {
-      outline: 3px solid var(--alan-mustard);
-      outline-offset: 2px;
+      outline: 2px solid var(--alan-green);
+      outline-offset: 1px;
     }
 
     &.ng-invalid.ng-touched {
@@ -219,15 +237,6 @@ a {
     font-size: 14px;
     font-weight: 500;
   }
-}
-
-// Franja de papel picado.
-.alan-bunting {
-  display: block;
-  height: 40px;
-  border-top: 4px solid var(--alan-ink);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='36'%3E%3Cpolygon points='4,0 36,0 20,34' fill='%23D5382A'/%3E%3Cpolygon points='44,0 76,0 60,34' fill='%231F7A33'/%3E%3Cpolygon points='84,0 116,0 100,34' fill='%23FFF4DC'/%3E%3C/svg%3E")
-    repeat-x;
 }
 
 // ---------------------------------------------------------------------------
@@ -249,15 +258,16 @@ a {
   h2 {
     margin: 0;
     font-family: var(--alan-display);
-    font-weight: 400;
-    font-size: 34px;
-    line-height: 1.05;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+    font-size: clamp(32px, 3.6vw, 48px);
+    line-height: 1.04;
   }
 
   p {
-    margin: 6px 0 0;
+    margin: 8px 0 0;
     color: var(--alan-muted);
-    font-size: 15px;
+    font-size: 17px;
   }
 }
 
@@ -266,23 +276,24 @@ a {
   flex-direction: column;
   gap: 20px;
   min-width: 0;
-  padding: 24px;
-  border: 3px solid var(--alan-ink);
-  border-radius: 28px;
+  padding: 28px;
+  border: 1px solid var(--alan-line);
+  border-radius: 24px;
   background: #fff;
 
   h3 {
     margin: 0;
     font-family: var(--alan-display);
-    font-weight: 400;
-    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    font-size: 24px;
   }
 
   &--ink {
     border-color: var(--alan-ink);
     background: var(--alan-ink);
     color: #fff;
-    box-shadow: 8px 8px 0 var(--alan-chile);
+    box-shadow: none;
 
     h3 {
       color: var(--alan-mustard);
@@ -319,7 +330,7 @@ a {
   gap: 8px;
   min-height: 44px;
   padding: 0 18px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 999px;
   background: var(--alan-cream);
   color: var(--alan-ink);
@@ -390,7 +401,7 @@ a {
     height: 48px;
     box-sizing: border-box;
     padding: 0 16px 0 46px;
-    border: 3px solid var(--alan-ink);
+    border: 1px solid var(--alan-line);
     border-radius: 999px;
     background: #fff;
     color: var(--alan-ink);
@@ -408,7 +419,7 @@ a {
   overflow-x: auto;
 
   &__inner {
-    min-width: 640px;
+    min-width: var(--min, 640px);
     display: flex;
     flex-direction: column;
   }
@@ -432,7 +443,7 @@ a {
   }
 
   &--head {
-    border-bottom: 3px solid var(--alan-ink);
+    border-bottom: 2px solid var(--alan-ink);
     color: var(--alan-muted);
     font-size: 13px;
     font-weight: 700;
@@ -462,7 +473,7 @@ a {
   justify-content: center;
   width: 44px;
   height: 44px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 50%;
   background: var(--alan-cream);
   color: var(--alan-ink);
@@ -491,7 +502,7 @@ a {
     width: 52px;
     height: 30px;
     padding: 2px;
-    border: 3px solid var(--alan-ink);
+    border: 1px solid var(--alan-line);
     border-radius: 999px;
     background: #cfc6b0;
 
@@ -500,9 +511,9 @@ a {
       width: 20px;
       height: 20px;
       box-sizing: border-box;
-      border: 2px solid var(--alan-ink);
       border-radius: 50%;
       background: #fff;
+      box-shadow: 0 1px 2px rgba(30, 27, 22, 0.35);
     }
   }
 
@@ -522,35 +533,23 @@ a {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 24px;
-  border: 3px solid var(--alan-ink);
+  padding: 28px;
+  border: 1px solid var(--alan-line);
   border-radius: 24px;
   background: #fff;
-  box-shadow: 6px 6px 0 var(--alan-mustard);
 
   span {
     color: var(--alan-muted);
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   b {
     font-family: var(--alan-display);
-    font-size: 34px;
-    font-weight: 400;
+    font-size: 44px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
     line-height: 1;
-  }
-
-  &:nth-child(2) {
-    box-shadow: 6px 6px 0 var(--alan-chile);
-  }
-
-  &:nth-child(3) {
-    box-shadow: 6px 6px 0 var(--alan-green);
-  }
-
-  &:nth-child(4) {
-    box-shadow: 6px 6px 0 var(--alan-ink);
   }
 }
 
@@ -561,7 +560,7 @@ a {
   height: 230px;
   margin-bottom: 28px;
   padding: 0 4px;
-  border-bottom: 3px solid var(--alan-ink);
+  border-bottom: 1px solid var(--alan-line);
 
   &__col {
     position: relative;
@@ -584,9 +583,8 @@ a {
     width: 100%;
     min-height: 3px;
     box-sizing: border-box;
-    border: 3px solid var(--alan-ink);
-    border-bottom: 0;
-    border-radius: 10px 10px 0 0;
+    border: 0;
+    border-radius: 8px 8px 0 0;
     background: var(--alan-mustard);
 
     &--peak {
@@ -625,9 +623,8 @@ a {
   &__track {
     height: 12px;
     overflow: hidden;
-    border: 2px solid var(--alan-ink);
     border-radius: 999px;
-    background: #f3ebd8;
+    background: var(--alan-cream-2);
   }
 
   &__fill {

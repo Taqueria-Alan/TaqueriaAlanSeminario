@@ -8,7 +8,8 @@ h1,
 h2 {
   margin: 0;
   font-family: var(--alan-display);
-  font-weight: 400;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 p {
@@ -21,12 +22,13 @@ p {
   gap: 6px;
 
   h1 {
-    font-size: 44px;
-    line-height: 1.05;
+    font-size: clamp(36px, 4.4vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -0.045em;
   }
 
   p {
-    font-size: 18px;
+    font-size: 19px;
     color: var(--alan-muted);
   }
 }
@@ -37,7 +39,8 @@ p {
   gap: 20px;
 
   &__title {
-    font-size: 34px;
+    font-size: clamp(28px, 3.4vw, 40px);
+    letter-spacing: -0.035em;
   }
 }
 
@@ -46,11 +49,11 @@ p {
   flex-direction: column;
   gap: 28px;
   padding: 32px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 28px;
   background: var(--alan-green-dark);
   color: var(--alan-cream);
-  box-shadow: 8px 8px 0 var(--alan-ink);
+  box-shadow: none;
 
   &__kicker {
     color: var(--alan-mustard);
@@ -144,7 +147,7 @@ p {
   display: flex;
   flex-direction: column;
   padding: 8px 24px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 28px;
   background: #fff;
 
@@ -194,7 +197,7 @@ p {
   align-self: flex-start;
   margin-top: 8px;
   padding: 6px 14px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 999px;
   background: var(--alan-mustard);
   font-size: 14px;
@@ -208,10 +211,10 @@ p {
   justify-content: space-between;
   gap: 20px;
   padding: 28px 32px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 28px;
   background: var(--alan-mustard);
-  box-shadow: 8px 8px 0 var(--alan-ink);
+  box-shadow: none;
   max-width: 100%;
 
   div {
@@ -226,5 +229,88 @@ p {
   p {
     margin-top: 8px;
     line-height: 1.5;
+  }
+}
+
+// --- Acciones y detalle del pedido en curso ---------------------------------
+.order {
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+  }
+
+  &__toggle,
+  &__cancel {
+    min-height: 44px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: var(--alan-cream);
+    font: 600 15px var(--alan-font);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  &__cancel {
+    color: #ffb4a8;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+  }
+
+  &__detail {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 20px;
+    border-radius: 16px;
+    background: rgba(255, 244, 220, 0.1);
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+
+      b {
+        flex: none;
+        font-variant-numeric: tabular-nums;
+      }
+    }
+  }
+
+  &__meta {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #cfe3d4;
+  }
+
+  &__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255, 244, 220, 0.35);
+    font-weight: 700;
+
+    b {
+      color: var(--alan-mustard);
+      font-family: var(--alan-display);
+      font-size: 24px;
+      font-weight: 800;
+    }
   }
 }

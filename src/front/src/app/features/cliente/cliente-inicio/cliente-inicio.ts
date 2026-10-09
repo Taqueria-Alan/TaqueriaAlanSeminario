@@ -1,6 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDialog } from '@angular/material/dialog';
 import { Router, RouterLink } from '@angular/router';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, interval, of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { MenuItem } from '../../../core/data/menu.data';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -13,13 +15,15 @@ import {
   resumenLineas,
 } from '../../../core/pedidos/pedido.model';
 import { PedidoService } from '../../../core/pedidos/pedido.service';
-import { MenuService } from '../services/menu.service';
+import { MenuService } from '../../../core/catalogo/menu.service';
+import { ConfirmDialog } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ClubAlanService } from '../../club-alan/services/club-alan.service';
+import { ClienteClubComponent } from '../cliente-club/cliente-club';
 
 @Component({
   selector: 'app-cliente-inicio',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ClienteClubComponent],
   templateUrl: './cliente-inicio.html',
   styleUrl: './cliente-inicio.scss',
 })
@@ -29,12 +33,19 @@ export class ClienteInicioComponent {
   private readonly menuService = inject(MenuService);
   private readonly clubAlanService = inject(ClubAlanService);
   private readonly notificaciones = inject(NotificationService);
+  private readonly dialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly usuario = inject(AuthService).usuario;
   readonly resumen = resumenLineas;
   readonly tipoDe = etiquetaTipoPedido;
   readonly etiquetaEstado = ETIQUETA_ESTADO;
   readonly esSuscripcion = esSuscripcion;
+  readonly idCliente = this.pedidoService.clienteActualId;
+
+  /** Detalle del pedido activo (articulos, total, indicaciones) y cancelacion en curso. */
+  readonly detalleAbierto = signal(false);
+  readonly cancelando = signal(false);
 
   /** Producto de servicio con el que se vende la suscripcion al Club Alan (del catalogo). */
   readonly productoClub = signal<MenuItem | null>(null);
@@ -65,6 +76,12 @@ export class ClienteInicioComponent {
       ),
   );
 
+  /** Se puede cancelar mientras el pedido siga recibido y sin pago aprobado. */
+  readonly puedeCancelar = computed(() => {
+    const pedido = this.activo();
+    return !!pedido && pedido.estado === 'RECIBIDO' && pedido.pagoEstado !== 'APROBADO';
+  });
+
   /** Etapas del pedido activo: hechas, en curso o pendientes. */
   readonly etapas = computed(() => {
     const pedido = this.activo();
@@ -80,6 +97,14 @@ export class ClienteInicioComponent {
   });
 
   constructor() {
+    // El estado del pedido en curso se refresca solo cada 15 s (y al volver a la pestaña).
+    interval(15_000)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refrescarActivo());
+    const alVolver = () => !document.hidden && this.refrescarActivo();
+    document.addEventListener('visibilitychange', alVolver);
+    this.destroyRef.onDestroy(() => document.removeEventListener('visibilitychange', alVolver));
+
     this.menuService.cargar().subscribe(({ suscripcion }) => this.productoClub.set(suscripcion));
     const idCliente = this.pedidoService.clienteActualId();
     if (idCliente !== null) {
@@ -93,6 +118,56 @@ export class ClienteInicioComponent {
 
   fecha(iso: string): string {
     return new Date(iso).toLocaleDateString('es-GT', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  hora(iso: string): string {
+    return new Date(iso).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /** Consulta el pedido activo y avisa si cambio de estado desde la ultima vez. */
+  private refrescarActivo(): void {
+    const pedido = this.activo();
+    if (!pedido || document.hidden) {
+      return;
+    }
+    this.pedidoService.obtener(pedido.id, true).subscribe({
+      next: (nuevo) => {
+        if (nuevo.estado !== pedido.estado) {
+          this.notificaciones.success(`Tu pedido #${nuevo.id}: ${ETIQUETA_ESTADO[nuevo.estado]}`);
+        }
+      },
+      error: () => undefined,
+    });
+  }
+
+  cancelarPedido(): void {
+    const pedido = this.activo();
+    if (!pedido || !this.puedeCancelar() || this.cancelando()) {
+      return;
+    }
+    this.dialog
+      .open(ConfirmDialog, {
+        data: {
+          title: 'Cancelar pedido',
+          message: `¿Cancelar el pedido #${pedido.id}? No se hará ningún cobro.`,
+          confirmText: 'Cancelar pedido',
+          cancelText: 'Conservarlo',
+        },
+      })
+      .afterClosed()
+      .subscribe((confirmado) => {
+        if (!confirmado) {
+          return;
+        }
+        this.cancelando.set(true);
+        this.pedidoService
+          .cancelar(pedido.id)
+          .pipe(finalize(() => this.cancelando.set(false)))
+          .subscribe(() => {
+            this.detalleAbierto.set(false);
+            this.notificaciones.success(`Pedido #${pedido.id} cancelado. No se realizó ningún cobro.`);
+          });
+      });
   }
 
   repetir(pedido: Pedido): void {

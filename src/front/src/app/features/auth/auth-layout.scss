@@ -12,14 +12,15 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    border-right: 3px solid var(--alan-ink);
+    border-right: 1px solid var(--alan-line);
     background: var(--alan-mustard);
     overflow: hidden;
 
     h2 {
       margin: 0;
       font-family: var(--alan-display);
-      font-weight: 400;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       font-size: clamp(32px, 3.6vw, 48px);
       line-height: 1.05;
     }
@@ -38,7 +39,9 @@
     display: flex;
     flex-direction: column;
     padding: 32px 48px;
-    background: var(--alan-cream);
+    background-color: var(--alan-cream);
+    background-image: var(--alan-texture);
+    background-attachment: fixed;
   }
 
   &__back {
@@ -74,7 +77,8 @@
     h1 {
       margin: 0 0 8px;
       font-family: var(--alan-display);
-      font-weight: 400;
+      font-weight: 800;
+      letter-spacing: -0.02em;
       font-size: 44px;
       line-height: 1.05;
     }

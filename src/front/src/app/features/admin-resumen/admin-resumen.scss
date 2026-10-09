@@ -12,7 +12,8 @@ h2,
 h3 {
   margin: 0;
   font-family: var(--alan-display);
-  font-weight: 400;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 h2 {
@@ -61,7 +62,7 @@ p {
   flex-direction: column;
   gap: 8px;
   padding: 24px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 24px;
   background: #fff;
 
@@ -74,24 +75,24 @@ p {
   b {
     font-family: var(--alan-display);
     font-size: 34px;
-    font-weight: 400;
+    font-weight: 800;
     line-height: 1;
   }
 
   &--mustard {
-    box-shadow: 6px 6px 0 var(--alan-mustard);
+    box-shadow: none;
   }
 
   &--chile {
-    box-shadow: 6px 6px 0 var(--alan-chile);
+    box-shadow: none;
   }
 
   &--green {
-    box-shadow: 6px 6px 0 var(--alan-green);
+    box-shadow: none;
   }
 
   &--ink {
-    box-shadow: 6px 6px 0 var(--alan-ink);
+    box-shadow: none;
   }
 }
 
@@ -109,7 +110,7 @@ p {
   flex-direction: column;
   gap: 20px;
   padding: 24px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 28px;
   background: #fff;
 
@@ -136,7 +137,7 @@ p {
   gap: 10px;
   height: 230px;
   padding: 0 4px;
-  border-bottom: 3px solid var(--alan-ink);
+  border-bottom: 1px solid var(--alan-line);
 
   &__col {
     flex: 1;
@@ -159,7 +160,7 @@ p {
     width: 100%;
     min-height: 3px;
     box-sizing: border-box;
-    border: 3px solid var(--alan-ink);
+    border: 1px solid var(--alan-line);
     border-bottom: 0;
     border-radius: 10px 10px 0 0;
     background: var(--alan-mustard);
@@ -245,7 +246,7 @@ p {
   flex-direction: column;
   gap: 14px;
   padding: 16px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 24px;
   background: #e9dfc6;
 
@@ -293,7 +294,7 @@ p {
   flex-direction: column;
   gap: 10px;
   padding: 16px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
   border-radius: 18px;
   background: #fff;
 
@@ -327,7 +328,7 @@ p {
 
   &__btn {
     min-height: 44px;
-    border: 3px solid var(--alan-ink);
+    border: 1px solid var(--alan-line);
     border-radius: 999px;
     color: #fff;
     font: 700 15px var(--alan-font);

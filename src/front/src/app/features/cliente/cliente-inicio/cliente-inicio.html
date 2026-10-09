@@ -25,7 +25,7 @@
         <div>
           <span class="order__kicker">PEDIDO #{{ pedido.id }} · {{ tipoDe(pedido).toUpperCase() }}</span>
           <h2>{{ etiquetaEstado[pedido.estado] }}</h2>
-          <p>{{ resumen(pedido.lineas) }} · Q{{ pedido.total }}</p>
+          <p>{{ resumen(pedido.lineas) }} · Q{{ pedido.total }}@if (pedido.pagoEstado === 'APROBADO') { · Pagado }</p>
         </div>
       </div>
       <ol class="steps" aria-label="Estado del pedido">
@@ -40,8 +40,32 @@
           </li>
         }
       </ol>
-      @if (pedido.pagoEstado !== 'APROBADO' && pedido.estado === 'RECIBIDO') {
-        <button type="button" class="alan-btn alan-btn--mustard" (click)="irAPago(pedido)">Continuar al pago</button>
+      <div class="order__actions">
+        @if (pedido.pagoEstado !== 'APROBADO' && pedido.estado === 'RECIBIDO') {
+          <button type="button" class="alan-btn alan-btn--mustard" (click)="irAPago(pedido)">Continuar al pago</button>
+        }
+        <button type="button" class="order__toggle" [attr.aria-expanded]="detalleAbierto()" (click)="detalleAbierto.set(!detalleAbierto())">
+          {{ detalleAbierto() ? 'Ocultar detalle' : 'Ver detalle' }}
+        </button>
+        @if (puedeCancelar()) {
+          <button type="button" class="order__cancel" [disabled]="cancelando()" (click)="cancelarPedido()">Cancelar pedido</button>
+        }
+      </div>
+      @if (detalleAbierto()) {
+        <div class="order__detail">
+          <p class="order__meta">
+            Hecho el {{ fecha(pedido.creadoEn) }} a las {{ hora(pedido.creadoEn) }} · {{ tipoDe(pedido) }}@if (pedido.direccion) { · {{ pedido.direccion }} }
+          </p>
+          <ul>
+            @for (l of pedido.lineas; track l.idProducto) {
+              <li><span>{{ l.cantidad }} × {{ l.nombre }}</span><b>Q{{ l.precio * l.cantidad }}</b></li>
+            }
+          </ul>
+          @if (pedido.observaciones) {
+            <p class="order__meta">Indicaciones: {{ pedido.observaciones }}</p>
+          }
+          <div class="order__total"><span>Total</span><b>Q{{ pedido.total }}</b></div>
+        </div>
       }
     </div>
   } @else {
@@ -52,6 +76,10 @@
     </div>
   }
 </section>
+
+@if (esMiembro() && idCliente(); as idCli) {
+  <app-cliente-club [idCliente]="idCli" />
+}
 
 <section class="block">
   <h2 class="block__title">Pedidos anteriores</h2>

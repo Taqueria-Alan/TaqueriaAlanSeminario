@@ -15,12 +15,16 @@ export class ClienteLayoutComponent {
 
   readonly usuario = this.auth.usuario;
   readonly iniciales = computed(() => {
-    const u = this.usuario();
-    return u ? `${u.nombre.charAt(0)}${u.apellido.charAt(0)}`.toUpperCase() : '';
+    const nombre = this.usuario()?.nombre ?? '';
+    return nombre
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte.charAt(0))
+      .join('')
+      .toUpperCase();
   });
 
   cerrarSesion(): void {
-    this.auth.logout();
-    this.router.navigateByUrl('/');
+    this.auth.logout().subscribe(() => this.router.navigateByUrl('/'));
   }
 }

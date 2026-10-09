@@ -8,7 +8,7 @@
   max-width: 540px;
   border-radius: 28px;
   padding-bottom: 8px;
-  border: 3px solid var(--alan-ink);
+  border: 1px solid var(--alan-line);
 }
 
 .form-card__header {
@@ -20,7 +20,8 @@
   h2 {
     margin: 0 0 4px;
     font-family: var(--alan-display);
-    font-weight: 400;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 
   p {

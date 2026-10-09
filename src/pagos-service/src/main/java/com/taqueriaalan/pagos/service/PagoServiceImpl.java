@@ -34,10 +34,12 @@ public class PagoServiceImpl implements PagoService {
 
     @Override
     @Transactional(noRollbackFor = PaymentDeclinedException.class)
-    public PagoResponse procesar(PagoRequest request, String requestedKey, String correlationId) {
+    public PagoResponse procesar(PagoRequest request, String requestedKey, String correlationId,
+            Long idClienteAutenticado, String rol) {
         String idempotencyKey = normalizarClave(requestedKey, request.idempotencyKey());
         Pedido pedido = pedidoRepository.findByIdForUpdate(request.idPedido())
                 .orElseThrow(() -> new ResourceNotFoundException("No existe el pedido " + request.idPedido()));
+        verificarPertenencia(pedido, idClienteAutenticado, rol);
         Pago previoPorClave = pagoRepository.findByIdPedidoAndIdempotencyKey(pedido.getIdPedido(), idempotencyKey)
                 .orElse(null);
         if (previoPorClave != null) {
@@ -79,11 +81,26 @@ public class PagoServiceImpl implements PagoService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagoResponse obtenerPorPedido(Long idPedido) {
+    public PagoResponse obtenerPorPedido(Long idPedido, Long idClienteAutenticado, String rol) {
         Pedido pedido = obtenerPedido(idPedido);
+        verificarPertenencia(pedido, idClienteAutenticado, rol);
         Pago pago = pagoRepository.findFirstByIdPedidoOrderByIdPagoDesc(idPedido)
                 .orElseThrow(() -> new ResourceNotFoundException("No existe un pago para el pedido " + idPedido));
         return toResponse(pago, pedido, false);
+    }
+
+    /**
+     * Un CLIENTE solo puede ver/pagar sus propios pedidos; ADMIN no tiene restriccion.
+     * rol==null significa que el filtro de seguridad esta desactivado (perfil local
+     * sin SECURITY_ENABLED): no hay sesion que verificar.
+     */
+    private void verificarPertenencia(Pedido pedido, Long idClienteAutenticado, String rol) {
+        if (rol == null || "ADMIN".equals(rol)) {
+            return;
+        }
+        if (idClienteAutenticado == null || !idClienteAutenticado.equals(pedido.getIdCliente())) {
+            throw new BusinessException("ACCESO_DENEGADO", "Este pedido no te pertenece", HttpStatus.FORBIDDEN);
+        }
     }
 
     private void validarTarjetaDePrueba(PagoRequest request, Pedido pedido, String idempotencyKey, String correlationId) {

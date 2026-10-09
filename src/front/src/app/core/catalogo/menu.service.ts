@@ -1,15 +1,10 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, of } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-import {
-  CATEGORIA_SERVICIOS,
-  MENU_ESTATICO,
-  MenuCategoria,
-  MenuItem,
-} from '../../../core/data/menu.data';
-import { OMITIR_NOTIFICACION_ERROR } from '../../../core/interceptors/error.interceptor';
-import { ProductoConCategoria } from '../../catalogo/models/producto.model';
+import { environment } from '../../../environments/environment';
+import { CATEGORIA_SERVICIOS, MENU_ESTATICO, MenuCategoria, MenuItem } from '../data/menu.data';
+import { OMITIR_NOTIFICACION_ERROR } from '../interceptors/error.interceptor';
+import { ProductoConCategoria } from '../../features/catalogo/models/producto.model';
 
 const ICONOS: Record<string, string> = Object.fromEntries(
   MENU_ESTATICO.map((c) => [c.titulo.toLowerCase(), c.icono]),

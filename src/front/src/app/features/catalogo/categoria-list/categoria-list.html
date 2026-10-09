@@ -20,7 +20,7 @@
       <p class="adm-empty">Cargando categorías…</p>
     } @else {
       <div class="adm-table">
-        <div class="adm-table__inner" style="--cols: minmax(0, 1.2fr) minmax(0, 2fr) 110px 100px">
+        <div class="adm-table__inner" style="--cols: minmax(0, 1.2fr) minmax(0, 2fr) 110px 100px; --min: 760px">
           <div class="adm-row adm-row--head"><span>Nombre</span><span>Descripción</span><span>Estado</span><span></span></div>
           @for (c of categorias(); track c.idCategoria) {
             <div class="adm-row">

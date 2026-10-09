@@ -28,7 +28,7 @@
     @for (item of itemsVisibles(); track item.id) {
       <div class="item">
         <div class="item__info">
-          <b>{{ item.nombre }} <em>Q{{ item.precio }}</em></b>
+          <div class="item__info-head"><b>{{ item.nombre }}</b><em>Q{{ item.precio }}</em></div>
           <small>{{ item.detalle }}</small>
         </div>
         <div class="stepper">
@@ -44,8 +44,8 @@
     }
   </section>
 
-  <aside class="cart">
-    <div class="cart__head"><h2>Tu pedido</h2><small>{{ cantidadTotal() }} artículos</small></div>
+  <aside class="cart" #carrito>
+    <div class="cart__head"><h2>Tu pedido</h2><small>{{ cantidadTotal() }} {{ cantidadTotal() === 1 ? 'artículo' : 'artículos' }}</small></div>
 
     <div class="mode" role="group" aria-label="Tipo de pedido">
       <button type="button" [class.is-active]="tipo() === 'LLEVAR'" [attr.aria-pressed]="tipo() === 'LLEVAR'" (click)="tipo.set('LLEVAR')">Para llevar</button>
@@ -86,3 +86,13 @@
     </button>
   </aside>
 </div>
+
+@if (cantidadTotal() > 0) {
+  <div class="cartbar" [class.is-hidden]="carritoVisible()">
+    <div class="cartbar__info">
+      <b>{{ cantidadTotal() }} {{ cantidadTotal() === 1 ? 'artículo' : 'artículos' }}</b>
+      <span>Q{{ total() }}</span>
+    </div>
+    <button type="button" class="alan-btn alan-btn--mustard" (click)="irAlCarrito()">Ver pedido</button>
+  </div>
+}

@@ -10,13 +10,16 @@ public interface PedidoService {
 
     PedidoResponse crear(PedidoRequest request, String correlationId);
 
-    PedidoResponse obtener(Long idPedido);
+    PedidoResponse obtener(Long idPedido, Long idClienteAutenticado, String rol);
 
     List<PedidoResponse> listar(Long idCliente);
 
-    PedidoResponse actualizar(Long idPedido, ActualizarPedidoRequest request, String correlationId);
+    PedidoResponse actualizar(Long idPedido, ActualizarPedidoRequest request, String correlationId,
+            Long idClienteAutenticado, String rol);
 
-    PedidoResponse cancelar(Long idPedido, CancelarPedidoRequest request, String correlationId);
+    PedidoResponse cancelar(Long idPedido, CancelarPedidoRequest request, String correlationId,
+            Long idClienteAutenticado, String rol);
 
+    /** Solo ADMIN: es la cocina/el repartidor avanzando el pedido, nunca el cliente. */
     PedidoResponse avanzar(Long idPedido, String correlationId);
 }

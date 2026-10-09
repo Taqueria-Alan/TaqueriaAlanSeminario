@@ -96,6 +96,11 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
     ports:
       - "${SERVICE_PORT_8081:-8081}:8081"
     networks:
@@ -123,6 +128,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
       - "${SERVICE_PORT_8082:-8082}:8082"
     networks:
@@ -152,7 +160,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SPRING_PROFILES_ACTIVE: local
-      SECURITY_ENABLED: "false"
+      TZ: ${TZ:-America/Guatemala}
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
       - "${SERVICE_PORT_8083:-8083}:8083"
     networks:
@@ -184,8 +194,11 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
       CLUB_ALAN_BASE_URL: http://club-alan-service:8085
       CLUB_ALAN_ENABLED: "true"
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
       - "${SERVICE_PORT_8084:-8084}:8084"
     networks:
@@ -213,6 +226,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
       - "${SERVICE_PORT_8085:-8085}:8085"
     networks:

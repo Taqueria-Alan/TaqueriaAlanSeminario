@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -8,7 +8,7 @@ import { MenuCategoria } from '../../../core/data/menu.data';
 import { LineaPedido, NuevoPedido, Pedido, TipoPedido } from '../../../core/pedidos/pedido.model';
 import { PedidoService } from '../../../core/pedidos/pedido.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { MenuService } from '../services/menu.service';
+import { MenuService } from '../../../core/catalogo/menu.service';
 
 @Component({
   selector: 'app-cliente-pedir',
@@ -24,6 +24,12 @@ export class ClientePedirComponent {
   private readonly pedidoService = inject(PedidoService);
   private readonly notificaciones = inject(NotificationService);
   private readonly usuario = inject(AuthService).usuario;
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** El carrito (columna lateral en pantallas anchas, al final de la lista en celular). */
+  @ViewChild('carrito') private carrito?: ElementRef<HTMLElement>;
+  /** true cuando el carrito ya esta en pantalla: entonces la barra fija sobra. */
+  readonly carritoVisible = signal(false);
 
   readonly config = inject(ConfiguracionService).config;
   readonly editando = signal<Pedido | null>(null);
@@ -101,6 +107,22 @@ export class ClientePedirComponent {
     });
   }
 
+  ngAfterViewInit(): void {
+    const elemento = this.carrito?.nativeElement;
+    if (!elemento || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+    const observador = new IntersectionObserver(([entrada]) => this.carritoVisible.set(entrada.isIntersecting), {
+      threshold: 0.15,
+    });
+    observador.observe(elemento);
+    this.destroyRef.onDestroy(() => observador.disconnect());
+  }
+
+  irAlCarrito(): void {
+    this.carrito?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   cambiar(idProducto: number, delta: number): void {
     this.cantidades.update((cantidades) => ({
       ...cantidades,
@@ -118,7 +140,7 @@ export class ClientePedirComponent {
     const editando = this.editando();
     const solicitud: NuevoPedido = {
       idCliente,
-      cliente: usuario ? `${usuario.nombre} ${usuario.apellido.charAt(0)}.` : `Cliente #${idCliente}`,
+      cliente: usuario ? usuario.nombre : `Cliente #${idCliente}`,
       tipo: this.tipo(),
       clase: editando?.clase ?? 'NORMAL',
       direccion: this.direccion().trim() || null,
