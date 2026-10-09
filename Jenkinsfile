@@ -24,7 +24,7 @@ pipeline {
                     # En Docker Desktop se construyen de uno en uno para evitar agotar el motor.
                     COMPOSE_PARALLEL_LIMIT=1 IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
                       docker compose -f docker/docker-compose.yml build \
-                      auth-service catalogo-service pedidos-service pagos-service club-alan-service
+                      mysql db-migrations auth-service catalogo-service pedidos-service pagos-service club-alan-service
                 '''
             }
         }
@@ -43,6 +43,9 @@ pipeline {
                 sh '''
                         set -eu
                         export IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}"
+                        # No reutilizar evidencia ignorada de ejecuciones anteriores.
+                        rm -rf reports
+                        mkdir -p reports
                         # CI usa la configuración efímera no productiva definida por Docker Compose.
                         # Las credenciales de producción nunca se incluyen en este pipeline.
                         export MYSQL_DATABASE=taqueria_db MYSQL_USER=taqueria
@@ -80,6 +83,8 @@ pipeline {
             post {
                 always {
                     sh '''
+                        docker compose -p "taqueria-ci-${BUILD_NUMBER}" \
+                          -f docker/docker-compose.yml logs --tail 120 || true
                         docker compose -p "taqueria-ci-${BUILD_NUMBER}" \
                           -f docker/docker-compose.yml down --volumes --remove-orphans || true
                     '''

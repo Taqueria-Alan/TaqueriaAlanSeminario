@@ -142,6 +142,28 @@ tarjeta inválida, fondos insuficientes, edición y cancelación antes del pago,
 idempotencia por pedido, entrega para llevar y domicilio, Club Alan y la
 protección que impide sustituir el SKU de membresía por un producto ordinario.
 
+## Corrección de infraestructura CI: ejecución Jenkins #9
+
+La ejecución `#9` construyó correctamente las imágenes de los cinco servicios,
+pero se detuvo antes de Pytest porque `db-migrations` finalizó con código `1`.
+La causa no fue una credencial ni una sentencia SQL: Jenkins corre dentro de
+un contenedor y su espacio de trabajo es un volumen Docker. Por ello, un bind
+mount como `./mysql-init:/docker-entrypoint-initdb.d` no era visible para el
+daemon Docker anfitrión; el archivo SQL llegaba como directorio y el cliente
+MySQL no podía leerlo.
+
+La corrección empaqueta los scripts de bootstrap `01` a `03` y la migración
+`04` en imágenes Docker propias. El build de Docker transfiere su contexto al
+daemon de forma segura, incluso cuando Jenkins usa Docker-outside-of-Docker.
+La etapa **Build** construye también esas dos imágenes y la etapa **Test** las
+usa con `--no-build`. Además, Test recrea `reports/` antes de empezar y publica
+los logs de Compose antes de limpiar el entorno, evitando que un reporte HTML
+de una ejecución previa se presente como evidencia actual.
+
+Validación local posterior a la corrección: `db-migrations` terminó con código
+`0`, se iniciaron MySQL, Redis y los cinco servicios reales, y Pytest reportó
+`28 passed`, `0 failures` y `0 errors`.
+
 ## Límites declarados antes de producción
 
 - En este alcance `codigoPedido` es una referencia pública derivada del ID

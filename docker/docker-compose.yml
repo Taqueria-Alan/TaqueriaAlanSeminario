@@ -1,7 +1,13 @@
 services:
 
   mysql:
-    image: mysql:8.0
+    # Jenkins se ejecuta en un contenedor y su workspace es un volumen Docker.
+    # Los bind mounts del workspace no son visibles para el daemon anfitrión;
+    # por eso los scripts de bootstrap se incluyen en una imagen reproducible.
+    image: taqueria/mysql-bootstrap:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: mysql/Dockerfile
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
@@ -12,9 +18,6 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
-      # MySQL corre estos scripts en orden alfabetico, solo la primera vez
-      # (volumen vacio): 01 esquema, 02 catalogos base, 03 datos de demo.
-      - ./mysql-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-changeme}"]
       interval: 5s
@@ -39,7 +42,12 @@ services:
   # Se ejecuta en cada levantamiento y deja la migración 04 aplicada incluso
   # cuando mysql-data ya existía antes de incorporar el flujo de pedidos.
   db-migrations:
-    image: mysql:8.0
+    # La migración también se empaqueta en una imagen: así funciona tanto
+    # desde Docker Desktop como desde Jenkins usando Docker-outside-of-Docker.
+    image: taqueria/db-migrations:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: migrations/Dockerfile
     restart: "no"
     depends_on:
       mysql:
@@ -48,8 +56,6 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-taqueria_db}
       MYSQL_USER: ${MYSQL_USER:-taqueria}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
-    volumes:
-      - ./mysql-init/04-pedidos-pagos.sql:/migrations/04-pedidos-pagos.sql:ro
     command:
       - /bin/sh
       - -ec
