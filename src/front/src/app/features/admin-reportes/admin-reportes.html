@@ -1,0 +1,65 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Reportes</h2>
+      <p>Ventas, productos y tipo de pedido por periodo.</p>
+    </div>
+    <button type="button" class="alan-btn" (click)="exportarCsv()" [disabled]="cantidad() === 0">
+      <span class="material-symbols-outlined" aria-hidden="true">download</span>Exportar CSV
+    </button>
+  </header>
+
+  <div class="adm-chips" role="group" aria-label="Periodo">
+    @for (p of periodos; track p.valor) {
+      <button type="button" class="adm-chip" [class.is-active]="periodo() === p.valor" [attr.aria-pressed]="periodo() === p.valor" (click)="periodo.set(p.valor)">
+        {{ p.etiqueta }}
+      </button>
+    }
+  </div>
+
+  <section class="adm-kpis">
+    <div class="adm-kpi"><span>Ventas</span><b>Q{{ ventas() }}</b></div>
+    <div class="adm-kpi"><span>Pedidos</span><b>{{ cantidad() }}</b></div>
+    <div class="adm-kpi"><span>Ticket promedio</span><b>Q{{ ticket().toFixed(2) }}</b></div>
+    <div class="adm-kpi"><span>Artículos vendidos</span><b>{{ unidades() }}</b></div>
+  </section>
+
+  <section class="adm-card">
+    <h3>{{ titulosGrafica() }}</h3>
+    <div class="adm-bars" role="img" [attr.aria-label]="titulosGrafica()">
+      @for (b of barras(); track b.etiqueta) {
+        <div class="adm-bars__col">
+          <span class="adm-bars__val">{{ b.valor || '' }}</span>
+          <div class="adm-bars__bar" [class.adm-bars__bar--peak]="b.pico" [style.height.px]="b.alto"></div>
+          <span class="adm-bars__label">{{ b.etiqueta }}</span>
+        </div>
+      }
+    </div>
+  </section>
+
+  <div class="adm-split">
+    <section class="adm-card adm-main">
+      <h3>Productos con más ingresos</h3>
+      <div class="adm-table">
+        <div class="adm-table__inner" style="--cols: minmax(0, 1fr) 110px 110px">
+          <div class="adm-row adm-row--head"><span>Producto</span><span>Unidades</span><span>Ingresos</span></div>
+          @for (p of productos(); track p.nombre + p.detalle) {
+            <div class="adm-row"><span><b>{{ p.nombre }}</b><small>{{ p.detalle }}</small></span><span>{{ p.unidades }}</span><b>Q{{ p.ingresos }}</b></div>
+          } @empty {
+            <p class="adm-empty">Sin ventas en este periodo.</p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <aside class="adm-card adm-side">
+      <h3>Por tipo de pedido</h3>
+      @for (t of porTipo(); track t.etiqueta) {
+        <div class="adm-meter">
+          <div class="adm-meter__row"><span><b>{{ t.etiqueta }}</b><small>{{ t.pedidos }} pedidos</small></span><b>Q{{ t.ventas }}</b></div>
+          <div class="adm-meter__track"><div class="adm-meter__fill adm-meter__fill--green" [style.width.%]="t.ancho"></div></div>
+        </div>
+      }
+    </aside>
+  </div>
+</div>

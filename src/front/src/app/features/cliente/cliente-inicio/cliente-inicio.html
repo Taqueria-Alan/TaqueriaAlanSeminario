@@ -1,0 +1,103 @@
+<header class="head">
+  <h1>Hola, {{ usuario()?.nombre }}</h1>
+  <p>¿Qué se te antoja hoy?</p>
+  @if (esMiembro()) {
+    <span class="member"><span class="material-symbols-outlined" aria-hidden="true">loyalty</span>Miembro Club Alan</span>
+  }
+</header>
+
+@if (ofrecerClub()) {
+  <section class="club">
+    <div>
+      <h2>Únete al Club Alan</h2>
+      <p>Acumula puntos en cada pedido, canjéalos como pago y obtén envío gratis. {{ productoClub()?.detalle }}</p>
+    </div>
+    <button type="button" class="alan-btn alan-btn--lg alan-btn--ink" [disabled]="suscribiendo()" (click)="suscribirse()">
+      {{ suscribiendo() ? 'Enviando…' : 'Suscribirme · Q' + productoClub()?.precio }}
+    </button>
+  </section>
+}
+
+<section class="block">
+  @if (activo(); as pedido) {
+    <div class="order">
+      <div class="order__top">
+        <div>
+          <span class="order__kicker">PEDIDO #{{ pedido.id }} · {{ tipoDe(pedido).toUpperCase() }}</span>
+          <h2>{{ etiquetaEstado[pedido.estado] }}</h2>
+          <p>{{ resumen(pedido.lineas) }} · Q{{ pedido.total }}@if (pedido.pagoEstado === 'APROBADO') { · Pagado }</p>
+        </div>
+      </div>
+      <ol class="steps" aria-label="Estado del pedido">
+        @for (etapa of etapas(); track etapa.etiqueta) {
+          <li class="steps__item steps__item--{{ etapa.situacion }}">
+            <span class="steps__dot">
+              @if (etapa.situacion === 'done') {
+                <span class="material-symbols-outlined" aria-hidden="true">check</span>
+              }
+            </span>
+            <span class="steps__label">{{ etapa.etiqueta }}</span>
+          </li>
+        }
+      </ol>
+      <div class="order__actions">
+        @if (pedido.pagoEstado !== 'APROBADO' && pedido.estado === 'RECIBIDO') {
+          <button type="button" class="alan-btn alan-btn--mustard" (click)="irAPago(pedido)">Continuar al pago</button>
+        }
+        <button type="button" class="order__toggle" [attr.aria-expanded]="detalleAbierto()" (click)="detalleAbierto.set(!detalleAbierto())">
+          {{ detalleAbierto() ? 'Ocultar detalle' : 'Ver detalle' }}
+        </button>
+        @if (puedeCancelar()) {
+          <button type="button" class="order__cancel" [disabled]="cancelando()" (click)="cancelarPedido()">Cancelar pedido</button>
+        }
+      </div>
+      @if (detalleAbierto()) {
+        <div class="order__detail">
+          <p class="order__meta">
+            Hecho el {{ fecha(pedido.creadoEn) }} a las {{ hora(pedido.creadoEn) }} · {{ tipoDe(pedido) }}@if (pedido.direccion) { · {{ pedido.direccion }} }
+          </p>
+          <ul>
+            @for (l of pedido.lineas; track l.idProducto) {
+              <li><span>{{ l.cantidad }} × {{ l.nombre }}</span><b>Q{{ l.precio * l.cantidad }}</b></li>
+            }
+          </ul>
+          @if (pedido.observaciones) {
+            <p class="order__meta">Indicaciones: {{ pedido.observaciones }}</p>
+          }
+          <div class="order__total"><span>Total</span><b>Q{{ pedido.total }}</b></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="order order--empty">
+      <h2>No tienes pedidos en curso</h2>
+      <p>Cuando hagas un pedido podrás seguir su avance aquí.</p>
+      <a class="alan-btn alan-btn--mustard" routerLink="/cliente/pedir">Hacer pedido</a>
+    </div>
+  }
+</section>
+
+@if (esMiembro() && idCliente(); as idCli) {
+  <app-cliente-club [idCliente]="idCli" />
+}
+
+<section class="block">
+  <h2 class="block__title">Pedidos anteriores</h2>
+  <div class="history">
+    @for (p of historial(); track p.id) {
+      <div class="history__row">
+        <div class="history__info">
+          <b>{{ resumen(p.lineas) }}</b>
+          <small>Pedido #{{ p.id }} · {{ fecha(p.creadoEn) }}</small>
+        </div>
+        <b>Q{{ p.total }}</b>
+        <span class="tag">Entregado</span>
+        @if (!esSuscripcion(p)) {
+          <button type="button" class="alan-btn" (click)="repetir(p)">Repetir pedido</button>
+        }
+      </div>
+    } @empty {
+      <p class="history__empty">Todavía no tienes pedidos entregados.</p>
+    }
+  </div>
+</section>

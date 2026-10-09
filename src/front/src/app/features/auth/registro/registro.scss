@@ -1,0 +1,113 @@
+@use '../auth-layout';
+
+.auth__aside {
+  background: var(--alan-green-dark);
+  color: var(--alan-cream);
+}
+
+.aside__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 36px;
+  padding: 64px 56px;
+
+  h2 {
+    max-width: 480px;
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 440px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    font-size: 18px;
+    line-height: 1.4;
+
+    span:first-child {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--alan-mustard);
+      color: var(--alan-ink);
+      font-size: 22px;
+      font-weight: 700;
+    }
+  }
+}
+
+.aside__brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.aside__emblem {
+  width: 56px;
+  height: 70px;
+}
+
+.aside__name {
+  color: var(--alan-mustard);
+  font-family: var(--alan-display);
+  font-weight: 800;
+  font-size: 26px;
+}
+
+.auth__form--wide {
+  max-width: 560px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+
+.terms {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 15px;
+  cursor: pointer;
+
+  input {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    accent-color: var(--alan-green);
+  }
+}
+
+// En celular el panel de beneficios se compacta para que el formulario quede a la vista.
+@media (max-width: 720px) {
+  .aside__body {
+    gap: 14px;
+    padding: 20px;
+
+    h2 {
+      font-size: 26px;
+    }
+
+    ul {
+      display: none;
+    }
+  }
+}

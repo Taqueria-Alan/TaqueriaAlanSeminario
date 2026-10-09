@@ -1,0 +1,42 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Categorías</h2>
+      <p>Organiza el menú por categorías y controla su disponibilidad.</p>
+    </div>
+    <a class="alan-btn alan-btn--green" routerLink="nueva">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>Nueva categoría
+    </a>
+  </header>
+
+  <div class="adm-chips" role="group" aria-label="Estado">
+    @for (f of filtros; track f.valor) {
+      <button type="button" class="adm-chip" [class.is-active]="filtro() === f.valor" [attr.aria-pressed]="filtro() === f.valor" (click)="cambiarFiltro(f.valor)">{{ f.etiqueta }}</button>
+    }
+  </div>
+
+  <section class="adm-card">
+    @if (cargando()) {
+      <p class="adm-empty">Cargando categorías…</p>
+    } @else {
+      <div class="adm-table">
+        <div class="adm-table__inner" style="--cols: minmax(0, 1.2fr) minmax(0, 2fr) 110px 100px; --min: 760px">
+          <div class="adm-row adm-row--head"><span>Nombre</span><span>Descripción</span><span>Estado</span><span></span></div>
+          @for (c of categorias(); track c.idCategoria) {
+            <div class="adm-row">
+              <b>{{ c.nombre }}</b>
+              <span>{{ c.descripcion || '—' }}</span>
+              <span class="adm-tag" [class.adm-tag--green]="c.activa" [class.adm-tag--chile]="!c.activa">{{ c.activa ? 'Activa' : 'Inactiva' }}</span>
+              <span class="acts">
+                <a class="adm-icon-btn" [routerLink]="[c.idCategoria]" aria-label="Editar"><span class="material-symbols-outlined" aria-hidden="true">edit</span></a>
+                <button type="button" class="adm-icon-btn" [disabled]="!c.activa" aria-label="Desactivar" (click)="desactivar(c)"><span class="material-symbols-outlined" aria-hidden="true">block</span></button>
+              </span>
+            </div>
+          } @empty {
+            <p class="adm-empty">No hay categorías para este filtro.</p>
+          }
+        </div>
+      </div>
+    }
+  </section>
+</div>

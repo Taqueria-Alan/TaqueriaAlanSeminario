@@ -1,10 +1,13 @@
-version: "3.9"
-
 services:
 
   mysql:
-    image: mysql:8.0
-    container_name: taqueria-mysql
+    # Jenkins se ejecuta en un contenedor y su workspace es un volumen Docker.
+    # Los bind mounts del workspace no son visibles para el daemon anfitrión;
+    # por eso los scripts de bootstrap se incluyen en una imagen reproducible.
+    image: taqueria/mysql-bootstrap:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: mysql/Dockerfile
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
@@ -19,13 +22,17 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-changeme}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      # La inicialización en un volumen nuevo puede tardar más de los 50 s
+      # que cubrían diez reintentos. Durante este periodo no debe marcarse
+      # el servicio como fallido: las dependencias esperan a que MySQL esté
+      # realmente disponible antes de ejecutar las migraciones.
+      start_period: 90s
+      retries: 20
     networks:
       - taqueria-network
 
   redis:
     image: redis:7-alpine
-    container_name: taqueria-redis
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
@@ -37,17 +44,54 @@ services:
     networks:
       - taqueria-network
 
+  # Se ejecuta en cada levantamiento y deja la migración 04 aplicada incluso
+  # cuando mysql-data ya existía antes de incorporar el flujo de pedidos.
+  db-migrations:
+    # La migración también se empaqueta en una imagen: así funciona tanto
+    # desde Docker Desktop como desde Jenkins usando Docker-outside-of-Docker.
+    image: taqueria/db-migrations:${IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: migrations/Dockerfile
+    restart: "no"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-taqueria_db}
+      MYSQL_USER: ${MYSQL_USER:-taqueria}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        attempt=1
+        until mysqladmin --protocol=tcp ping -h mysql -u"$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" --silent; do
+          if [ "$$attempt" -ge 30 ]; then
+            echo "MySQL no estuvo disponible para aplicar la migracion tras 30 intentos" >&2
+            exit 1
+          fi
+          echo "Esperando MySQL para aplicar la migracion ($$attempt/30)..."
+          attempt=$$((attempt + 1))
+          sleep 2
+        done
+        mysql --protocol=tcp -h mysql -u"$${MYSQL_USER}" -p"$${MYSQL_PASSWORD}" "$${MYSQL_DATABASE}" < /migrations/04-pedidos-pagos.sql
+    networks:
+      - taqueria-network
+
   auth-service:
+    image: taqueria/auth:${IMAGE_TAG:-local}
     build:
       context: ../src/auth-service
       dockerfile: ../../docker/auth/Dockerfile
-    container_name: taqueria-auth-service
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -56,22 +100,30 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
+      JWT_EXPIRATION_HOURS: ${JWT_EXPIRATION_HOURS:-24}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
     ports:
-      - "8081:8081"
+      - "${SERVICE_PORT_8081:-8081}:8081"
     networks:
       - taqueria-network
 
   catalogo-service:
+    image: taqueria/catalogo:${IMAGE_TAG:-local}
     build:
       context: ../src/catalogo-service
       dockerfile: ../../docker/catalogo/Dockerfile
-    container_name: taqueria-catalogo-service
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
@@ -80,22 +132,28 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
-      - "8082:8082"
+      - "${SERVICE_PORT_8082:-8082}:8082"
     networks:
       - taqueria-network
 
   pedidos-service:
+    image: taqueria/pedidos:${IMAGE_TAG:-local}
     build:
       context: ../src/pedidos-service
       dockerfile: ../../docker/pedidos/Dockerfile
-    container_name: taqueria-pedidos-service
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
       catalogo-service:
         condition: service_started
     environment:
@@ -106,23 +164,31 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
-      - "8083:8083"
+      - "${SERVICE_PORT_8083:-8083}:8083"
     networks:
       - taqueria-network
 
   pagos-service:
+    image: taqueria/pagos:${IMAGE_TAG:-local}
     build:
       context: ../src/pagos-service
       dockerfile: ../../docker/pagos/Dockerfile
-    container_name: taqueria-pagos-service
     restart: unless-stopped
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
       pedidos-service:
+        condition: service_started
+      club-alan-service:
         condition: service_started
     environment:
       DB_HOST: mysql
@@ -132,8 +198,74 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
       REDIS_HOST: redis
       REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      CLUB_ALAN_BASE_URL: http://club-alan-service:8085
+      CLUB_ALAN_ENABLED: "true"
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
     ports:
-      - "8084:8084"
+      - "${SERVICE_PORT_8084:-8084}:8084"
+    networks:
+      - taqueria-network
+
+  club-alan-service:
+    image: taqueria/club-alan:${IMAGE_TAG:-local}
+    build:
+      context: ../src/club-alan-service
+      dockerfile: ../../docker/club-alan/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-migrations:
+        condition: service_completed_successfully
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-taqueria_db}
+      DB_USER: ${MYSQL_USER:-taqueria}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-changeme}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SPRING_PROFILES_ACTIVE: local
+      TZ: ${TZ:-America/Guatemala}
+      SECURITY_ENABLED: ${SECURITY_ENABLED:-true}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET es obligatorio}
+    ports:
+      - "${SERVICE_PORT_8085:-8085}:8085"
+    networks:
+      - taqueria-network
+
+  gateway-service:
+    image: taqueria/gateway:${IMAGE_TAG:-local}
+    build:
+      context: ../src/gateway-service
+      dockerfile: ../../docker/gateway/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_started
+      catalogo-service:
+        condition: service_started
+      pedidos-service:
+        condition: service_started
+      pagos-service:
+        condition: service_started
+      club-alan-service:
+        condition: service_started
+    environment:
+      TZ: ${TZ:-America/Guatemala}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      CATALOGO_SERVICE_URL: http://catalogo-service:8082
+      PEDIDOS_SERVICE_URL: http://pedidos-service:8083
+      PAGOS_SERVICE_URL: http://pagos-service:8084
+      CLUB_ALAN_SERVICE_URL: http://club-alan-service:8085
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+    ports:
+      - "${SERVICE_PORT_8080:-8080}:8080"
     networks:
       - taqueria-network
 

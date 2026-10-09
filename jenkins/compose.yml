@@ -1,0 +1,17 @@
+name: taqueria-jenkins
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jenkins-taqueria
+    user: "1000:0"
+    ports:
+      - "127.0.0.1:9090:8080"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:

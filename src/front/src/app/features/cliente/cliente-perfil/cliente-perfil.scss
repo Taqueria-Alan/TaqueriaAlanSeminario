@@ -1,0 +1,45 @@
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  h1 {
+    margin: 0;
+    font-family: var(--alan-display);
+    font-weight: 800;
+    font-size: clamp(36px, 4.4vw, 56px);
+    line-height: 1.04;
+    letter-spacing: -0.045em;
+  }
+
+  p {
+    margin: 0;
+    font-size: 19px;
+    color: var(--alan-muted);
+  }
+}
+
+.panel {
+  max-width: 480px;
+  margin-top: 28px;
+  padding: 28px 32px;
+  border: 1px solid var(--alan-line);
+  border-radius: 24px;
+  background: #fff;
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+.alert {
+  padding: 12px 16px;
+  border: 1px solid var(--alan-chile-dark);
+  border-radius: 14px;
+  background: #fde4df;
+  color: #7a1d12;
+  font-size: 15px;
+  font-weight: 500;
+}

@@ -1,0 +1,13 @@
+:host { display: grid; min-height: 60vh; place-items: center; }
+.loading { color: var(--alan-muted); }
+.confirmation { width: min(100%, 620px); box-sizing: border-box; padding: 38px; border: 1px solid var(--alan-line); border-radius: 30px; background: #fff; text-align: center; box-shadow: none; }
+.check { color: var(--alan-green); font-size: 64px; }
+.eyebrow { margin: 6px 0; color: var(--alan-green-dark); font-size: 12px; font-weight: 900; letter-spacing: .12em; }
+h1 { margin: 8px 0; font-family: var(--alan-display); font-size: clamp(30px, 5vw, 46px); font-weight: 800; line-height: 1.1; }
+.lead { margin: 0 auto 24px; color: var(--alan-muted); font-size: 17px; line-height: 1.5; }
+.ticket { display: grid; grid-template-columns: 100px 1fr; gap: 12px 18px; margin: 20px 0; padding: 22px; border-radius: 18px; background: var(--alan-cream); text-align: left; }
+.ticket span { color: var(--alan-muted); }
+.ticket b, .ticket strong { overflow-wrap: anywhere; }
+.ticket strong { color: var(--alan-chile-dark); font-size: 22px; }
+.club { padding: 12px; border-radius: 12px; background: #ddefd9; color: var(--alan-green-dark); line-height: 1.45; }
+@media (max-width: 520px) { .confirmation { padding: 26px 20px; } .ticket { grid-template-columns: 82px 1fr; gap: 10px; } }
