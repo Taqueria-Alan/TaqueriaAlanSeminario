@@ -1,0 +1,69 @@
+.form-page {
+  display: flex;
+  justify-content: center;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 540px;
+  border-radius: 28px;
+  padding-bottom: 8px;
+  border: 1px solid var(--alan-line);
+}
+
+.form-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 20px 8px;
+
+  h2 {
+    margin: 0 0 4px;
+    font-family: var(--alan-display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.form-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--mat-sys-primary-container);
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 20px 4px;
+
+  mat-form-field {
+    width: 100%;
+  }
+
+  .acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+
+    button mat-icon {
+      margin-right: 4px;
+    }
+  }
+}

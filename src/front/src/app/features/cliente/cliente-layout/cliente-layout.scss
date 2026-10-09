@@ -1,0 +1,208 @@
+// Mismo lenguaje que el landing: barra superior crema con la marca, contenido centrado
+// con el mismo margen lateral y titulares grandes en Bricolage.
+$gutter: clamp(20px, 5.5vw, 80px);
+
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: var(--alan-font);
+  color: var(--alan-ink);
+  background: var(--alan-cream);
+}
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 32px;
+  padding: 16px $gutter;
+  border-bottom: 1px solid var(--alan-line);
+  background: rgba(251, 248, 243, 0.94);
+  backdrop-filter: blur(8px);
+
+  &__nav {
+    display: flex;
+    flex: 1;
+    gap: 8px;
+    margin-left: 16px;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 0 18px;
+      border-radius: 999px;
+      color: var(--alan-ink);
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        background: var(--alan-cream-2);
+      }
+
+      &.is-active {
+        background: var(--alan-ink);
+        color: var(--alan-cream);
+      }
+    }
+  }
+
+  &__user {
+    display: flex;
+    align-items: center;
+    gap: 8px 20px;
+  }
+
+  &__me {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+  }
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--alan-mustard);
+    color: var(--alan-ink);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__who {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__logout {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+    color: var(--alan-muted);
+    font: 500 16px var(--alan-font);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--alan-chile-dark);
+    }
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+
+  &__emblem {
+    width: 40px;
+    height: 50px;
+  }
+
+  &__name {
+    font-family: var(--alan-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 48px $gutter 96px;
+}
+
+.tabbar {
+  display: none;
+}
+
+// En celular y tablet angosta la navegacion pasa a una barra inferior, al alcance del pulgar;
+// arriba queda solo la marca y la sesion.
+@media (max-width: 820px) {
+  .top {
+    position: static;
+    flex-wrap: nowrap;
+    padding: 10px 16px;
+
+    &__nav,
+    &__who,
+    &__label {
+      display: none;
+    }
+
+    &__me {
+      padding: 0;
+    }
+
+    &__logout {
+      padding: 0 10px;
+    }
+  }
+
+  .brand__name {
+    font-size: 19px;
+  }
+
+  .main {
+    padding: 28px 20px 104px;
+  }
+
+  .tabbar {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--alan-ink);
+    border-top: 1px solid rgba(255, 244, 220, 0.14);
+
+    a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 64px;
+      color: #cfc6b0;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+
+      .material-symbols-outlined {
+        font-size: 26px;
+      }
+
+      &.is-active {
+        color: var(--alan-mustard);
+      }
+    }
+  }
+}

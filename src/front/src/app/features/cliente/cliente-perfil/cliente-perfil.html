@@ -1,0 +1,40 @@
+<header class="head">
+  <h1>Mi perfil</h1>
+  <p>Actualiza tu nombre, correo o teléfono.</p>
+</header>
+
+<section class="panel">
+  <form [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+    @if (error()) {
+      <div class="alert" role="alert">{{ error() }}</div>
+    }
+
+    <div class="alan-field">
+      <label for="nombre">Nombre</label>
+      <input id="nombre" type="text" formControlName="nombre" autocomplete="name" />
+      @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+        <span class="alan-field__error">Escribe tu nombre.</span>
+      }
+    </div>
+
+    <div class="alan-field">
+      <label for="telefono">Teléfono</label>
+      <input id="telefono" type="tel" formControlName="telefono" autocomplete="tel" placeholder="0000 0000" />
+      @if (form.controls.telefono.touched && form.controls.telefono.invalid) {
+        <span class="alan-field__error">Escribe un teléfono válido.</span>
+      }
+    </div>
+
+    <div class="alan-field">
+      <label for="email">Correo electrónico</label>
+      <input id="email" type="email" formControlName="email" autocomplete="email" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <span class="alan-field__error">Escribe un correo válido.</span>
+      }
+    </div>
+
+    <button type="submit" class="alan-btn alan-btn--green" [disabled]="form.pristine || guardando()">
+      {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+    </button>
+  </form>
+</section>

@@ -1,8 +1,13 @@
 $ink: var(--alan-ink);
 $cream: var(--alan-cream);
+$tint: var(--alan-cream-2);
+$line: var(--alan-line);
 $mustard: var(--alan-mustard);
 $green: var(--alan-green);
-$chile: var(--alan-chile);
+$muted: var(--alan-muted);
+$display: var(--alan-display);
+
+$gutter: clamp(20px, 5.5vw, 80px);
 
 :host {
   display: block;
@@ -15,27 +20,39 @@ h1,
 h2,
 h3 {
   margin: 0;
-  font-weight: 400;
+  font-family: $display;
+  font-weight: 800;
+  // El body hereda un line-height fijo de Material (24px); sin esto los titulares grandes se encimarian con lo que sigue.
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
-h1,
-h2 {
-  font-family: var(--alan-display);
-  line-height: 1;
-}
-
-h2 {
-  font-size: clamp(36px, 5vw, 64px);
-}
-
-.strip {
+p {
   margin: 0;
-  padding: 10px 24px;
-  background: $chile;
-  color: $cream;
-  text-align: center;
+}
+
+.muted {
+  color: $muted;
+}
+
+.link {
+  padding-bottom: 2px;
+  border-bottom: 2px solid $ink;
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    border-bottom-color: $green;
+    color: $green;
+  }
+}
+
+.notice {
+  padding: 10px $gutter;
+  background: $mustard;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
+  text-align: center;
 }
 
 // --- Navegacion ---------------------------------------------------------
@@ -44,21 +61,21 @@ h2 {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px 48px;
-  border-bottom: 3px solid $ink;
+  gap: 16px 32px;
+  padding: 24px $gutter;
 
   &__links {
     display: flex;
     flex-wrap: wrap;
     gap: 12px 32px;
-    font-weight: 700;
+    font-weight: 500;
 
     a {
       text-decoration: none;
 
       &:hover {
         text-decoration: underline;
+        text-underline-offset: 6px;
       }
     }
   }
@@ -66,7 +83,18 @@ h2 {
   &__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    align-items: center;
+    gap: 12px 24px;
+  }
+
+  &__login {
+    color: $muted;
+    font-weight: 500;
+    text-decoration: none;
+
+    &:hover {
+      color: $ink;
+    }
   }
 }
 
@@ -77,477 +105,519 @@ h2 {
   text-decoration: none;
 
   &__emblem {
-    width: 56px;
-    height: 56px;
+    display: block;
+    width: 40px;
+    height: 50px;
+    flex: none;
+
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
   }
 
   &__name {
-    font-family: var(--alan-display);
-    font-size: 24px;
+    font-family: $display;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 }
 
 // --- Hero ---------------------------------------------------------------
 .hero {
-  background: $mustard;
-  border-bottom: 3px solid $ink;
-  overflow: hidden;
-
-  &__inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 48px;
-    max-width: 1344px;
-    margin: 0 auto;
-    padding: 40px 48px 88px;
-  }
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 48px 72px;
+  padding: 40px $gutter 88px;
 
   &__copy {
-    flex: 1 1 520px;
+    flex: 1 1 420px;
     min-width: 0;
+    max-width: 560px;
     display: flex;
     flex-direction: column;
-    gap: 28px;
+    align-items: flex-start;
+    gap: 24px;
 
     h1 {
-      font-size: clamp(44px, 6.4vw, 88px);
-      letter-spacing: -0.5px;
+      font-size: clamp(36px, 4.4vw, 62px);
+      line-height: 1.04;
+      letter-spacing: -0.045em;
     }
 
     p {
-      margin: 0;
-      max-width: 560px;
-      font-size: 20px;
-      line-height: 1.5;
+      font-size: 19px;
+      line-height: 1.55;
+      color: $muted;
     }
   }
 
   &__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    align-items: center;
+    gap: 14px;
+
+    .material-symbols-outlined {
+      font-size: 22px;
+    }
   }
 
-  &__cta {
-    box-shadow: 5px 5px 0 $chile;
+  &__features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 24px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .material-symbols-outlined {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: $tint;
+      color: var(--alan-green-dark);
+      font-size: 22px;
+    }
+  }
+
+  // Foto a la derecha; el logo se monta sobre su esquina inferior izquierda.
+  &__media {
+    position: relative;
+    flex: 1.15 1 440px;
+    min-width: 0;
+  }
+
+  &__photo {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 1.05;
+    border-radius: 28px;
+    object-fit: cover;
+    object-position: 52% 50%;
+    background: $tint;
   }
 
   &__logo {
-    position: relative;
-    flex: 1 1 380px;
-    min-width: 0;
-    display: flex;
-    justify-content: center;
-  }
-
-  &__emblem {
-    width: min(100%, 460px);
-    aspect-ratio: 1;
-    border-width: 6px;
-    box-shadow: 12px 12px 0 $ink;
+    position: absolute;
+    left: calc(-1 * #{$gutter} + 8px);
+    bottom: -52px;
+    width: auto;
+    height: clamp(150px, 19vw, 270px);
+    object-fit: contain;
+    filter: drop-shadow(0 8px 18px rgba(30, 27, 22, 0.22));
   }
 }
 
-.chip {
-  align-self: flex-start;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: $ink;
-  color: $cream;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.facts {
+// Recuadro de foto. Sin foto muestra el logo sobre un fondo calido.
+.foto {
+  position: relative;
+  overflow: hidden;
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px 40px;
-  margin: 0;
-  padding-top: 12px;
-  border-top: 3px dashed rgba(27, 24, 19, 0.35);
-
-  dt {
-    font-family: var(--alan-display);
-    font-size: 26px;
-  }
-
-  dd {
-    margin: 0;
-    font-size: 14px;
-  }
-}
-
-.sticker {
-  position: absolute;
-  left: max(0px, calc(50% - 250px));
-  bottom: 12px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 128px;
-  height: 128px;
-  border: 4px solid $ink;
-  border-radius: 50%;
-  background: $chile;
-  color: $cream;
-  font-family: var(--alan-display);
-  font-size: 34px;
-  line-height: 1;
-  transform: rotate(-12deg);
+  background: $tint;
 
-  small {
-    font-family: var(--alan-font);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 1px;
+  > img:not(.foto__logo) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-}
 
-.ribbon {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 12px 28px;
-  padding: 18px 24px;
-  border-bottom: 3px solid $ink;
-  background: $chile;
-  color: $cream;
-  font-family: var(--alan-display);
-  font-size: 22px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+  &__logo {
+    width: auto;
+    height: 82%;
+    max-height: 460px;
+    object-fit: contain;
+  }
 
-  i {
-    width: 10px;
-    height: 10px;
-    background: $mustard;
-    transform: rotate(45deg);
+
+  &--card {
+    height: 210px;
+    border-radius: 20px;
   }
 }
 
 // --- Secciones ----------------------------------------------------------
 .section {
-  padding: 96px 48px;
-  border-bottom: 3px solid $ink;
+  padding: 24px $gutter 72px;
 
-  &--sand {
-    background: var(--alan-cream-2);
-  }
-
-  &--green {
-    background: var(--alan-green-dark);
-    color: $cream;
-
-    h2 {
-      color: $mustard;
-    }
-  }
-
-  &--mustard {
-    padding: 80px 48px;
-    background: $mustard;
-  }
-
-  &__inner {
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
-    max-width: 1344px;
-    margin: 0 auto;
+  &--tint {
+    padding-top: 72px;
+    background: $tint;
   }
 
   &__head {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: baseline;
     justify-content: space-between;
-    gap: 24px;
+    gap: 8px 24px;
+    margin-bottom: 28px;
 
-    p {
-      margin: 0;
-      max-width: 420px;
-      font-size: 18px;
-      line-height: 1.5;
-      color: var(--alan-muted);
+    h2 {
+      font-size: clamp(32px, 4vw, 48px);
     }
   }
-}
-
-.eyebrow {
-  display: block;
-  margin-bottom: 12px;
-  color: var(--alan-chile-dark);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
 }
 
 .center {
   display: flex;
   justify-content: center;
+  margin-top: 48px;
 }
 
-// --- Menu ---------------------------------------------------------------
-.menu {
+.destacados {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  align-items: start;
-}
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 28px;
 
-.menu-card {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 28px;
-  border-radius: 28px;
-  background: $ink;
-  color: #fff;
-  box-shadow: 8px 8px 0 $chile;
-
-  &--alt {
-    box-shadow: 8px 8px 0 $green;
-  }
-
-  header {
+  &__row {
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    justify-content: space-between;
     gap: 12px;
-    padding-bottom: 16px;
-    border-bottom: 2px dashed rgba(244, 184, 46, 0.55);
-    color: $mustard;
-
-    span {
-      color: var(--alan-orange);
-      font-size: 28px;
-    }
+    margin-top: 14px;
 
     h3 {
-      font-family: var(--alan-display);
       font-size: 22px;
-      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+
+    b {
+      flex: none;
+      font-size: 18px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 15px;
+    color: $muted;
+  }
+}
+
+// --- Carta --------------------------------------------------------------
+.carta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px 72px;
+
+  &__bloque {
+    h3 {
+      padding-bottom: 12px;
+      border-bottom: 2px solid $ink;
+      font-size: 26px;
     }
   }
 
   ul {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  &__row {
+  li {
     display: flex;
+    align-items: baseline;
     justify-content: space-between;
-    gap: 12px;
-    font-size: 18px;
+    gap: 16px;
+    padding: 16px 0;
+    border-bottom: 1px solid $line;
+
+    b {
+      display: block;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    small {
+      display: block;
+      margin-top: 2px;
+      color: $muted;
+      font-size: 14px;
+      line-height: 1.45;
+    }
 
     em {
-      color: $mustard;
+      flex: none;
       font-style: normal;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
-  }
-
-  small {
-    display: block;
-    margin-top: 4px;
-    color: #cfc6b0;
-    font-size: 14px;
-    line-height: 1.45;
   }
 }
 
 // --- Pasos --------------------------------------------------------------
 .steps {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 40px;
   margin: 0;
   padding: 0;
   list-style: none;
 
   li {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 32px;
-    border: 3px solid $ink;
-    border-radius: 28px;
-    background: #fff;
-    box-shadow: 6px 6px 0 $ink;
+    padding-top: 20px;
+    border-top: 1px solid $ink;
+  }
+
+  &__n {
+    display: block;
+    margin-bottom: 14px;
+    font-family: $display;
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: $green;
   }
 
   h3 {
     font-size: 24px;
-    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
   p {
-    margin: 0;
+    margin-top: 8px;
     font-size: 17px;
-    line-height: 1.5;
-    color: var(--alan-muted);
-  }
-
-  &__n {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 64px;
-    height: 64px;
-    border: 3px solid $ink;
-    border-radius: 50%;
-    font-family: var(--alan-display);
-    font-size: 30px;
-
-    &--1 {
-      background: $green;
-      color: #fff;
-    }
-
-    &--2 {
-      background: $chile;
-      color: #fff;
-    }
-
-    &--3 {
-      background: $mustard;
-    }
+    line-height: 1.55;
+    color: $muted;
   }
 }
 
-// --- Visitanos / CTA / pie ----------------------------------------------
+// --- Visitanos -----------------------------------------------------------
 .visit {
-  flex-direction: row;
+  display: flex;
   flex-wrap: wrap;
-  align-items: stretch;
-  gap: 48px;
+  align-items: center;
+  gap: 40px 64px;
+  padding: 72px $gutter 56px;
 
   &__info {
     flex: 1 1 380px;
+    min-width: 0;
+
+    h2 {
+      font-size: clamp(32px, 4vw, 48px);
+    }
+  }
+
+  dl {
+    display: grid;
+    margin: 28px 0 0;
+  }
+
+  dl > div {
+    padding: 16px 0;
+    border-bottom: 1px solid $line;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  dt {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $muted;
+  }
+
+  dd {
+    margin: 6px 0 0;
+    font-size: 20px;
+    line-height: 1.45;
+  }
+
+  &__actions {
     display: flex;
-    flex-direction: column;
-    gap: 28px;
-
-    ul {
-      display: flex;
-      flex-direction: column;
-      gap: 28px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    li {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      font-size: 17px;
-      line-height: 1.5;
-    }
-
-    span {
-      color: $mustard;
-      font-size: 28px;
-    }
-
-    b {
-      display: block;
-      font-size: 18px;
-    }
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 22px;
+    margin-top: 24px;
   }
 
   &__map {
-    flex: 1 1 420px;
-    min-height: 320px;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: center;
-    justify-content: center;
-    gap: 16px;
-    padding: 24px;
-    border: 3px solid $ink;
-    border-radius: 28px;
-    background: repeating-linear-gradient(45deg, #1f6b3a 0 18px, #1a5e32 18px 36px);
-    box-shadow: 8px 8px 0 $ink;
+    flex: 1.05 1 420px;
+    min-width: 0;
+    height: clamp(300px, 34vw, 470px);
+    overflow: hidden;
+    border-radius: 26px;
+    background: $tint;
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
   }
 }
 
+// --- Invitacion final: tarjeta verde con el cactus -------------------------
 .cta {
-  &__inner {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 56px;
+  margin: 96px $gutter 0;
+  padding: 0 clamp(24px, 4vw, 64px) 0 clamp(24px, 4vw, 56px);
+  border-radius: 32px;
+  background: var(--alan-green-dark);
+  color: $cream;
 
-    > div:first-child {
-      flex: 1 1 480px;
-    }
+  &__logo {
+    width: auto;
+    height: clamp(240px, 26vw, 370px);
+    margin: -70px 0 0;
+    object-fit: contain;
+  }
+
+  &__copy {
+    flex: 1 1 340px;
+    min-width: 0;
+    padding: 40px 0;
 
     h2 {
-      font-size: clamp(32px, 4.6vw, 56px);
+      font-size: clamp(34px, 4.4vw, 54px);
+      letter-spacing: -0.04em;
     }
 
     p {
-      margin: 12px 0 0;
+      margin-top: 12px;
       font-size: 20px;
+      line-height: 1.45;
+      color: #cfe3d4;
     }
   }
 
   &__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    align-items: center;
+    gap: 16px 28px;
+    margin-top: 26px;
+  }
+
+  &__link {
+    padding-bottom: 2px;
+    border-bottom: 2px solid $cream;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover {
+      color: $mustard;
+      border-bottom-color: $mustard;
+    }
   }
 }
 
+// --- Pie en cuatro columnas ---------------------------------------------------
 .footer {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 40px 48px;
-  background: $ink;
-  color: #cfc6b0;
-  font-size: 14px;
-
-  p {
-    margin: 0;
-  }
+  gap: 32px 64px;
+  margin: 56px $gutter 0;
+  padding: 32px 0 36px;
+  border-top: 1px solid $line;
+  font-size: 15px;
+  color: $muted;
 
   &__brand {
+    flex: 1.4 1 240px;
+
+    p {
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+  }
+
+  &__name {
     display: flex;
     align-items: center;
-    gap: 12px;
-    color: $cream;
-    font-family: var(--alan-display);
+    gap: 10px;
+    color: $ink;
+    font-family: $display;
     font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
   }
 
   &__emblem {
-    width: 44px;
-    height: 44px;
-    border: 2px solid $mustard;
+    width: 32px;
+    height: 40px;
+  }
+
+  &__col {
+    flex: 1 1 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    b {
+      margin-bottom: 4px;
+      color: $ink;
+    }
+
+    a {
+      text-decoration: none;
+
+      &:hover {
+        color: $ink;
+        text-decoration: underline;
+      }
+    }
   }
 }
 
+// En pantallas angostas el logo se queda dentro del ancho de la foto.
 @media (max-width: 720px) {
-  .nav,
-  .hero__inner,
-  .section,
-  .section--mustard,
-  .footer {
-    padding-left: 20px;
-    padding-right: 20px;
+  .hero__logo {
+    left: 8px;
+    bottom: -44px;
+    height: 132px;
+  }
+}
+
+// Enlaces de navegacion y pie: area minima tocable de 32 px (44 px en celular).
+.nav__links a,
+.nav__login,
+.footer__col a,
+.link,
+.cta__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+@media (max-width: 720px) {
+  .nav__links a,
+  .nav__login,
+  .footer__col a {
+    min-height: 44px;
   }
 }

@@ -1,0 +1,47 @@
+@use '../auth-layout';
+
+.aside__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 48px;
+  text-align: center;
+
+  h2,
+  p {
+    max-width: 440px;
+  }
+}
+
+.aside__emblem {
+  width: min(100%, 260px);
+  aspect-ratio: 4 / 5;
+}
+
+// En celular el panel de marca se compacta para que el formulario quede a la vista.
+@media (max-width: 720px) {
+  .aside__body {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 16px;
+    padding: 20px;
+    text-align: left;
+
+    p {
+      display: none;
+    }
+
+    h2 {
+      flex: 1 1 160px;
+      font-size: 24px;
+    }
+  }
+
+  .aside__emblem {
+    width: 96px;
+  }
+}

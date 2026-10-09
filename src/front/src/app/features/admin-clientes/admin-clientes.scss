@@ -1,0 +1,76 @@
+.adm-row.is-active {
+  background: var(--alan-cream);
+  border-radius: 12px;
+}
+
+// .adm-card es flex-direction: column; sin esto, el flex:1 de .adm-search
+// (pensado para una fila, como en Menú) estira el label a lo alto de toda
+// la tarjeta y el icono centrado al 50% queda lejos del input.
+.adm-search {
+  flex: 0 0 auto;
+}
+
+.cell-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 16px;
+}
+
+.profile {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--alan-line);
+    border-radius: 50%;
+    background: var(--alan-mustard);
+    font-family: var(--alan-display);
+    font-weight: 800;
+    font-size: 24px;
+  }
+
+  &__who {
+    flex: 1 1 220px;
+
+    h3 {
+      margin: 0;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: var(--alan-muted);
+    }
+  }
+}
+
+.adm-kpi b.small {
+  font-size: 24px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.neg {
+  color: var(--alan-chile-dark);
+}

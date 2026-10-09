@@ -1,0 +1,34 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Puntos Club Alan</h2>
+      <p>Busca un cliente para consultar su saldo de puntos acumulados.</p>
+    </div>
+  </header>
+
+  <app-cliente-search (clienteSeleccionado)="onClienteSeleccionado($event)" />
+
+  @if (cargando()) {
+    <p class="adm-empty">Consultando saldo…</p>
+  } @else if (puntos(); as p) {
+    <section class="adm-card adm-card--ink saldo">
+      <div class="saldo__coin" aria-hidden="true"><span class="material-symbols-outlined">loyalty</span></div>
+      <div class="saldo__body">
+        <span class="saldo__kicker">SALDO ACTUAL</span>
+        <p class="saldo__pts">{{ p.puntos }}<small>pts</small></p>
+        <p class="saldo__who">{{ cliente()?.nombre }} · cliente #{{ p.idCliente }}</p>
+        <span class="adm-tag" [class.adm-tag--green]="p.miembroClub" [class.adm-tag--chile]="!p.miembroClub">
+          {{ p.miembroClub ? 'Miembro Club Alan' : 'No es miembro' }}
+        </span>
+      </div>
+      <div class="saldo__actions">
+        <button type="button" class="alan-btn alan-btn--mustard" (click)="irA('movimientos')">Ver movimientos</button>
+        <button type="button" class="alan-btn" (click)="irA('membresia')">Gestionar membresía</button>
+      </div>
+    </section>
+  } @else if (buscado()) {
+    <div class="adm-card"><p class="adm-empty">No se encontró información de puntos para ese cliente.</p></div>
+  } @else {
+    <div class="adm-card"><p class="adm-empty">Escribe al menos 2 letras para buscar un cliente.</p></div>
+  }
+</div>

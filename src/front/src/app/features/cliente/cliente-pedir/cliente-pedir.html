@@ -1,0 +1,98 @@
+<header class="head">
+  <h1>{{ titulo() }}</h1>
+  <p>Elige lo que se te antoja. Antes de pagar puedes revisar, cambiar o cancelar tu pedido.</p>
+</header>
+
+@if (!config().pedidosActivos) {
+  <p class="closed" role="status">Por ahora no estamos recibiendo pedidos en línea. Puedes ver el menú y volver más tarde.</p>
+}
+
+<div class="layout">
+  <section class="panel">
+    <div class="tabs" role="tablist">
+      @for (c of menu(); track c.titulo; let i = $index) {
+        <button
+          type="button"
+          role="tab"
+          class="tabs__tab"
+          [class.is-active]="categoria() === i"
+          [attr.aria-selected]="categoria() === i"
+          (click)="categoria.set(i)"
+        >{{ c.titulo }}</button>
+      }
+    </div>
+
+    @if (cargando()) {
+      <p class="panel__msg">Cargando menú…</p>
+    }
+    @for (item of itemsVisibles(); track item.id) {
+      <div class="item">
+        <div class="item__info">
+          <div class="item__info-head"><b>{{ item.nombre }}</b><em>Q{{ item.precio }}</em></div>
+          <small>{{ item.detalle }}</small>
+        </div>
+        <div class="stepper">
+          <button type="button" aria-label="Quitar uno" [disabled]="!(cantidades()[item.id] > 0)" (click)="cambiar(item.id, -1)">
+            <span class="material-symbols-outlined" aria-hidden="true">remove</span>
+          </button>
+          <span class="stepper__n" aria-live="polite">{{ cantidades()[item.id] ?? 0 }}</span>
+          <button type="button" class="stepper__add" aria-label="Agregar uno" (click)="cambiar(item.id, 1)">
+            <span class="material-symbols-outlined" aria-hidden="true">add</span>
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
+  <aside class="cart" #carrito>
+    <div class="cart__head"><h2>Tu pedido</h2><small>{{ cantidadTotal() }} {{ cantidadTotal() === 1 ? 'artículo' : 'artículos' }}</small></div>
+
+    <div class="mode" role="group" aria-label="Tipo de pedido">
+      <button type="button" [class.is-active]="tipo() === 'LLEVAR'" [attr.aria-pressed]="tipo() === 'LLEVAR'" (click)="tipo.set('LLEVAR')">Para llevar</button>
+      @if (config().domicilioActivo) {
+        <button type="button" [class.is-active]="tipo() === 'DOMICILIO'" [attr.aria-pressed]="tipo() === 'DOMICILIO'" (click)="tipo.set('DOMICILIO')">A domicilio</button>
+      }
+    </div>
+
+    @if (tipo() === 'DOMICILIO') {
+      <label class="addr">
+        Dirección de entrega
+        <input type="text" name="direccion" [ngModel]="direccion()" (ngModelChange)="direccion.set($event)" placeholder="Zona, calle y referencia" />
+      </label>
+    }
+
+    <label class="addr">
+      Indicaciones para la cocina <span>(opcional)</span>
+      <input type="text" name="observaciones" [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)" placeholder="Ej. salsa aparte o sin cebolla" />
+    </label>
+
+    @if (lineas().length === 0) {
+      <p class="cart__empty">Aún no agregas nada.<br />Elige algo del menú para empezar.</p>
+    } @else {
+      <ul class="cart__lines">
+        @for (l of lineas(); track l.idProducto) {
+          <li>
+            <div><b>{{ l.cantidad }} × {{ l.nombre }}</b><small>{{ l.detalle }}</small></div>
+            <b class="cart__sub">Q{{ l.precio * l.cantidad }}</b>
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="cart__total"><span>Total</span><strong>Q{{ total() }}</strong></div>
+
+    <button type="button" class="alan-btn alan-btn--lg alan-btn--mustard alan-btn--block" [disabled]="!puedeConfirmar() || enviando()" (click)="confirmar()">
+      {{ textoBoton() }}
+    </button>
+  </aside>
+</div>
+
+@if (cantidadTotal() > 0) {
+  <div class="cartbar" [class.is-hidden]="carritoVisible()">
+    <div class="cartbar__info">
+      <b>{{ cantidadTotal() }} {{ cantidadTotal() === 1 ? 'artículo' : 'artículos' }}</b>
+      <span>Q{{ total() }}</span>
+    </div>
+    <button type="button" class="alan-btn alan-btn--mustard" (click)="irAlCarrito()">Ver pedido</button>
+  </div>
+}

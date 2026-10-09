@@ -1,0 +1,46 @@
+@if (!cargando() && puntos() !== null) {
+  <section class="club" aria-labelledby="club-titulo">
+    <div class="club__top">
+      <div class="club__saldo">
+        <span class="club__kicker" id="club-titulo">TUS PUNTOS CLUB ALAN</span>
+        <p class="club__pts"><b>{{ puntos() }}</b><small>pts</small></p>
+        <div class="club__tags">
+          @if (membresia()?.activa) {
+            <span class="club__tag">Miembro desde {{ membresia()?.fechaInicio | date: 'd MMM y' }}</span>
+          }
+          @if (envioGratis()) {
+            <span class="club__tag club__tag--on">Envío gratis activo</span>
+          }
+        </div>
+      </div>
+      <p class="club__hint">Sumas puntos con tus pedidos entregados. Aquí ves cada movimiento de tu saldo.</p>
+    </div>
+
+    <div class="club__movs">
+      <h3>Últimos movimientos</h3>
+      @if (movimientos().length === 0) {
+        <p class="club__empty">Aún no tienes movimientos. Se registran cuando se entregan tus pedidos.</p>
+      } @else {
+        <ul>
+          @for (m of movimientos(); track m.idMovimiento) {
+            <li>
+              <span class="club__ico" [class.club__ico--canje]="m.tipo === 'CANJE'" aria-hidden="true">
+                <span class="material-symbols-outlined">{{ m.tipo === 'CANJE' ? 'redeem' : 'add_circle' }}</span>
+              </span>
+              <span class="club__what">
+                <b>{{ m.descripcion || (m.tipo === 'CANJE' ? 'Canje de puntos' : 'Puntos por tu pedido') }}</b>
+                <small>{{ m.fecha | date: 'd MMM y, HH:mm' }}@if (m.idPedido) { · Pedido #{{ m.idPedido }} }</small>
+              </span>
+              <b class="club__delta" [class.club__delta--neg]="m.puntos < 0">{{ m.puntos > 0 ? '+' : '' }}{{ m.puntos }}</b>
+            </li>
+          }
+        </ul>
+        @if (hayMas()) {
+          <button type="button" class="club__more" [disabled]="cargandoMas()" (click)="verMas()">
+            {{ cargandoMas() ? 'Cargando…' : 'Ver más movimientos' }}
+          </button>
+        }
+      }
+    </div>
+  </section>
+}

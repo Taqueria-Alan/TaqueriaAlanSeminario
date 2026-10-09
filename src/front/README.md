@@ -74,11 +74,49 @@ src/app/
 ├── core/                 Interceptors, modelos e infraestructura compartida (no de UI)
 ├── shared/                Componentes reutilizables (spinner, empty-state, confirm-dialog)
 ├── layout/main-layout/    Shell de la app: sidenav + toolbar + <router-outlet>
+├── features/landing/      Sitio publico
+├── features/auth/         Login y registro
+├── features/cliente/      Panel del cliente (inicio y hacer pedido)
+├── features/admin-*/      Resumen, pedidos, clientes, reportes y ajustes del admin
 ├── features/catalogo/     Categorias y productos (CRUD completo)
 └── features/club-alan/    Puntos, movimientos y membresia (solo lectura + gestion de membresia)
 ```
 
 Cada feature se carga de forma perezosa (`loadChildren`) desde `app.routes.ts`.
+
+## Acceso, panel de cliente y pedidos (simulados)
+
+`auth-service`, `pedidos-service` y `pagos-service` aun no exponen endpoints, asi que el
+frontend trae una **capa simulada** guardada en `localStorage` para poder usar el flujo completo:
+
+| Ruta | Quien entra | Descripcion |
+| --- | --- | --- |
+| `/` | Todos | Landing publica con el menu |
+| `/login`, `/registro` | Invitados | Acceso y alta de cliente |
+| `/cliente`, `/cliente/pedir` | Rol `CLIENTE` | Pedido activo, historial y armado de pedido |
+| `/admin/resumen` | Rol `ADMIN` | KPIs del dia, ventas por hora, mas vendidos y tablero de pedidos en vivo |
+| `/admin/pedidos` | Rol `ADMIN` | Lista filtrable por estado, periodo y busqueda; detalle y avance de cada pedido (simulado) |
+| `/admin/catalogo/productos`, `/admin/catalogo/categorias` | Rol `ADMIN` | Menu y categorias contra catalogo-service (real) |
+| `/admin/clientes` | Rol `ADMIN` | Ficha de cliente con puntos, membresia y ultimos movimientos desde club-alan-service (real) |
+| `/admin/club-alan/{puntos,movimientos,membresia}` | Rol `ADMIN` | Pantallas de Club Alan contra club-alan-service (real); se enlazan entre si conservando el cliente elegido |
+| `/admin/reportes` | Rol `ADMIN` | Ventas por hora o dia, productos con mas ingresos, tipo de pedido y exportacion CSV (simulado) |
+| `/admin/ajustes` | Rol `ADMIN` | Datos del negocio (se reflejan en la landing) e interruptores de pedidos en linea y domicilio (simulado) |
+
+- **Cuenta de personal de prueba**: `admin@taqueriaalan.com` / `Admin1234` (definida en
+  `core/auth/auth.service.ts`, solo para demo). Los clientes se crean desde `/registro`.
+- `core/auth/auth.service.ts` y `core/pedidos/pedido.service.ts` exponen `Observable`s con la
+  forma de la futura API. Cuando existan los endpoints, sustituye el cuerpo de `login`,
+  `registrar`, `crear` y `avanzar` por llamadas `HttpClient` y agrega las URLs a `environment`.
+- Estados del pedido: `RECIBIDO`, `EN_PREPARACION`, `EN_RUTA`, `ENTREGADO` (definidos en `core/pedidos/pedido.model.ts`). `EN_RUTA` solo aplica a pedidos a domicilio; los de para llevar pasan de `EN_PREPARACION` a `ENTREGADO`.
+- Suscripcion al Club Alan: es un pedido de clase `SUSCRIPCION` (`PEDIDO.id_tipo_pedido`) cuyo producto es un producto de servicio del catalogo. El front toma ese producto de la categoria `Servicios` (el que se llame "Club Alan" o "Membresia", o el primero); si no existe, no ofrece la suscripcion. Su flujo es `RECIBIDO` -> `ENTREGADO` y al entregarse el cliente pasa a ser miembro (en el backend real lo haria pedidos-service llamando a club-alan-service). La modalidad (`LLEVAR`/`DOMICILIO`) corresponde a `PEDIDO.modalidad`.
+- El menu del cliente (`features/cliente/services/menu.service.ts`) lee los productos
+  disponibles de `catalogo-service`; si no responde o esta vacio usa `core/data/menu.data.ts`.
+- Si cambias el nombre de la clave de sesion, recuerda que `auth.interceptor.ts` lee el token de
+  `taqueria_auth_token`: la sesion simulada no lo escribe a proposito.
+- Los pedidos de ejemplo (una semana de historial y los de hoy) se siembran solos; en Ajustes puedes restablecerlos.
+- Los datos del negocio y los interruptores de Ajustes viven en `core/config/configuracion.service.ts` (localStorage) hasta que haya un servicio de configuracion.
+- Paleta y componentes de marca (`.alan-btn`, `.alan-field`, `.alan-emblem`, `--alan-*`) viven en
+  `src/styles.scss`; el tema de Angular Material se alinea con esa paleta en el mismo archivo.
 
 ## Pruebas unitarias
 

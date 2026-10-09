@@ -4,17 +4,34 @@ server:
 spring:
   application:
     name: pagos-service
+  profiles:
+    default: local
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?useSSL=true&requireSSL=true
-    username: ${DB_USER:root}
-    password: ${DB_PASSWORD:root}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?useSSL=${DB_SSL:true}&requireSSL=${DB_SSL:true}}
+    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:root}}
+    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:root}}
   jpa:
     hibernate:
       ddl-auto: none
+      naming:
+        # Mantiene los nombres físicos en mayúsculas del esquema MySQL existente.
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    open-in-view: false
   data:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
       password: ${REDIS_PASSWORD:}
       ssl:
-        enabled: true
+        enabled: ${REDIS_SSL:true}
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200}
+  club-alan:
+    base-url: ${CLUB_ALAN_BASE_URL:http://localhost:8085}
+    enabled: ${CLUB_ALAN_ENABLED:true}
+    internal-secret: ${JWT_SECRET:}
+  security:
+    enabled: ${SECURITY_ENABLED:true}
+    jwt-secret: ${JWT_SECRET:}
