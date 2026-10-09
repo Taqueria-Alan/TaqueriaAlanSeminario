@@ -52,29 +52,49 @@ pipeline {
                         export MYSQL_PORT=13306 REDIS_PORT=16379
                         export SERVICE_PORT_8081=18081 SERVICE_PORT_8082=18082
                         export SERVICE_PORT_8083=18083 SERVICE_PORT_8084=18084 SERVICE_PORT_8085=18085
-                        docker compose -p "taqueria-ci-${BUILD_NUMBER}" -f docker/docker-compose.yml up -d --no-build
-                        for port in 18081 18082 18083 18084 18085; do
-                          ready=0
-                          for attempt in $(seq 1 60); do
-                            if curl -s -o /dev/null "http://host.docker.internal:$port/"; then
-                              ready=1
-                              break
+                        ci_project="taqueria-ci-${BUILD_NUMBER}"
+                        ci_compose() {
+                          docker compose -p "$ci_project" -f docker/docker-compose.yml "$@"
+                        }
+                        wait_for_service() {
+                          service_name="$1"
+                          service_url="$2"
+                          # Docker Desktop puede iniciar Spring Boot más lento tras un build;
+                          # espera hasta seis minutos, pero normalmente termina antes.
+                          for attempt in $(seq 1 180); do
+                            if curl -s --connect-timeout 3 -o /dev/null "$service_url"; then
+                              echo "$service_name disponible en el intento $attempt"
+                              return 0
                             fi
                             sleep 2
                           done
-                          if [ "$ready" -ne 1 ]; then
-                            docker compose -p "taqueria-ci-${BUILD_NUMBER}" -f docker/docker-compose.yml logs --tail 80
-                            exit 1
-                          fi
-                        done
+                          echo "$service_name no estuvo disponible: $service_url" >&2
+                          ci_compose logs --tail 120 "$service_name" || true
+                          return 1
+                        }
+                        # Iniciar Java de forma gradual evita competir por RAM/CPU con cinco
+                        # JVM al mismo tiempo. Jenkins se conecta a la red interna de Compose,
+                        # evitando depender de host.docker.internal desde un contenedor.
+                        ci_compose up -d --no-build auth-service
+                        ci_network="${ci_project}_taqueria-network"
+                        docker network connect "$ci_network" "$(hostname)" 2>/dev/null || true
+                        wait_for_service auth-service http://auth-service:8081/
+                        ci_compose up -d --no-build catalogo-service
+                        wait_for_service catalogo-service http://catalogo-service:8082/
+                        ci_compose up -d --no-build club-alan-service
+                        wait_for_service club-alan-service http://club-alan-service:8085/
+                        ci_compose up -d --no-build pedidos-service
+                        wait_for_service pedidos-service http://pedidos-service:8083/
+                        ci_compose up -d --no-build pagos-service
+                        wait_for_service pagos-service http://pagos-service:8084/
                         python3 -m venv .venv
                         . .venv/bin/activate
                         python -m pip install -r tests/requirements.txt
-                        export AUTH_URL=http://host.docker.internal:18081
-                        export CATALOGO_URL=http://host.docker.internal:18082
-                        export PEDIDOS_URL=http://host.docker.internal:18083
-                        export PAGOS_URL=http://host.docker.internal:18084
-                        export CLUB_URL=http://host.docker.internal:18085
+                        export AUTH_URL=http://auth-service:8081
+                        export CATALOGO_URL=http://catalogo-service:8082
+                        export PEDIDOS_URL=http://pedidos-service:8083
+                        export PAGOS_URL=http://pagos-service:8084
+                        export CLUB_URL=http://club-alan-service:8085
                         mkdir -p reports
                         python -m pytest tests/ --junitxml=reports/pytest.xml \
                           --html=reports/report.html --self-contained-html
@@ -83,9 +103,11 @@ pipeline {
             post {
                 always {
                     sh '''
-                        docker compose -p "taqueria-ci-${BUILD_NUMBER}" \
+                        ci_project="taqueria-ci-${BUILD_NUMBER}"
+                        docker compose -p "$ci_project" \
                           -f docker/docker-compose.yml logs --tail 120 || true
-                        docker compose -p "taqueria-ci-${BUILD_NUMBER}" \
+                        docker network disconnect "${ci_project}_taqueria-network" "$(hostname)" 2>/dev/null || true
+                        docker compose -p "$ci_project" \
                           -f docker/docker-compose.yml down --volumes --remove-orphans || true
                     '''
                     junit allowEmptyResults: true, testResults: 'reports/pytest.xml'
