@@ -1,0 +1,60 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Menú</h2>
+      <p>Administra los productos: precios, categorías y disponibilidad al instante.</p>
+    </div>
+    <a class="alan-btn alan-btn--green" routerLink="nuevo">
+      <span class="material-symbols-outlined" aria-hidden="true">add</span>Nuevo producto
+    </a>
+  </header>
+
+  <div class="filters">
+    <div class="adm-chips" role="group" aria-label="Categoría">
+      @for (c of chipsCategoria(); track c.id) {
+        <button type="button" class="adm-chip" [class.is-active]="categoriaSeleccionada() === c.id" [attr.aria-pressed]="categoriaSeleccionada() === c.id" (click)="categoriaSeleccionada.set(c.id)">
+          {{ c.nombre }} <small>{{ c.cantidad }}</small>
+        </button>
+      }
+    </div>
+    <div class="filters__row">
+      <div class="adm-chips" role="group" aria-label="Disponibilidad">
+        @for (d of disponibilidades; track d.valor) {
+          <button type="button" class="adm-chip" [class.is-active]="disponibilidad() === d.valor" [attr.aria-pressed]="disponibilidad() === d.valor" (click)="disponibilidad.set(d.valor)">{{ d.etiqueta }}</button>
+        }
+      </div>
+      <label class="adm-search">
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input type="search" placeholder="Buscar producto" aria-label="Buscar producto" [value]="busqueda()" (input)="busqueda.set($any($event.target).value)" />
+      </label>
+    </div>
+  </div>
+
+  <section class="adm-card">
+    @if (cargando()) {
+      <p class="adm-empty">Cargando productos…</p>
+    } @else {
+      <div class="adm-table">
+        <div class="adm-table__inner" style="--cols: minmax(0, 3fr) minmax(0, 1.4fr) 90px 110px 100px">
+          <div class="adm-row adm-row--head">
+            <span>Platillo</span><span>Categoría</span><span>Precio</span><span>Disponible</span><span></span>
+          </div>
+          @for (p of visibles(); track p.idProducto) {
+            <div class="adm-row" [class.paused]="!p.disponible">
+              <span><b>{{ p.nombre }}</b>@if (p.descripcion) { <small>{{ p.descripcion }}</small> }</span>
+              <span class="adm-tag">{{ nombreCategoria(p.idCategoria) }}</span>
+              <b>Q{{ p.precio | number: '1.2-2' }}</b>
+              <button type="button" class="adm-switch" role="switch" [attr.aria-checked]="p.disponible" [attr.aria-label]="'Disponible: ' + p.nombre" (click)="cambiarDisponibilidad(p)"><span></span></button>
+              <span class="acts">
+                <a class="adm-icon-btn" [routerLink]="[p.idProducto]" aria-label="Editar"><span class="material-symbols-outlined" aria-hidden="true">edit</span></a>
+                <button type="button" class="adm-icon-btn" aria-label="Eliminar" (click)="eliminar(p)"><span class="material-symbols-outlined" aria-hidden="true">delete</span></button>
+              </span>
+            </div>
+          } @empty {
+            <p class="adm-empty">No hay productos para este filtro.</p>
+          }
+        </div>
+      </div>
+    }
+  </section>
+</div>

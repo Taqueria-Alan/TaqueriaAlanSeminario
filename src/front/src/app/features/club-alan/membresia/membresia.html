@@ -1,0 +1,101 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Membresía Club Alan</h2>
+      <p>Consulta y gestiona la membresía de un cliente.</p>
+    </div>
+  </header>
+
+  <app-cliente-search (clienteSeleccionado)="onClienteSeleccionado($event)" />
+
+  <section class="adm-card">
+    <div class="head">
+      <h3>Clientes con membresía</h3>
+      <div class="adm-chips" role="group" aria-label="Estado de la membresía">
+        @for (f of filtros; track f.valor) {
+          <button type="button" class="adm-chip" [class.is-active]="filtroEstado() === f.valor" [attr.aria-pressed]="filtroEstado() === f.valor" (click)="cambiarEstado(f.valor)">{{ f.etiqueta }}</button>
+        }
+      </div>
+    </div>
+
+    @if (cargandoLista()) {
+      <p class="adm-empty">Cargando miembros…</p>
+    } @else {
+      <div class="adm-table">
+        <div class="adm-table__inner" style="--cols: minmax(0, 2fr) 120px 140px 140px 90px 110px">
+          <div class="adm-row adm-row--head">
+            <span>Nombre</span><span>Teléfono</span><span>Inicio</span><span>Fin</span><span>Estado</span><span></span>
+          </div>
+          @for (m of miembros(); track m.idCliente) {
+            <div class="adm-row">
+              <b>{{ m.nombre }}</b>
+              <span>{{ m.telefono || '—' }}</span>
+              <span>{{ m.fechaInicio | date: 'd MMM y' }}</span>
+              <span>{{ m.fechaFin ? (m.fechaFin | date: 'd MMM y') : '—' }}</span>
+              <span class="adm-tag" [class.adm-tag--green]="m.activa" [class.adm-tag--chile]="!m.activa">{{ m.activa ? 'Activa' : 'Inactiva' }}</span>
+              <button type="button" class="adm-chip" (click)="seleccionarDeLista(m)">Gestionar</button>
+            </div>
+          } @empty {
+            <p class="adm-empty">No hay clientes con membresía en este filtro.</p>
+          }
+        </div>
+      </div>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="cambiarPagina($event)"
+      />
+    }
+  </section>
+
+  @if (cargando()) {
+    <p class="adm-empty">Consultando membresía…</p>
+  } @else if (buscado()) {
+    <div class="adm-split">
+      <section class="adm-card adm-main card">
+        <div class="card__top">
+          <div>
+            <h3>{{ cliente()?.nombre }}</h3>
+            <p class="card__sub">Cliente #{{ cliente()?.idCliente }}@if (cliente()?.telefono) { · {{ cliente()?.telefono }} }</p>
+          </div>
+          @if (membresia(); as m) {
+            <span class="adm-tag" [class.adm-tag--green]="m.activa" [class.adm-tag--chile]="!m.activa">{{ m.activa ? 'Membresía activa' : 'Membresía inactiva' }}</span>
+          } @else {
+            <span class="adm-tag">Sin membresía</span>
+          }
+        </div>
+
+        @if (errorConsulta()) {
+          <p class="card__error" role="alert">{{ errorConsulta() }}</p>
+        } @else if (membresia(); as m) {
+          <dl class="detalle">
+            <div><dt>Envío gratis</dt><dd>{{ m.envioGratis ? 'Sí' : 'No' }}</dd></div>
+            <div><dt>Fecha de inicio</dt><dd>{{ m.fechaInicio | date: 'd MMM y' }}</dd></div>
+            <div><dt>Fecha de fin</dt><dd>{{ m.fechaFin ? (m.fechaFin | date: 'd MMM y') : '—' }}</dd></div>
+          </dl>
+        } @else {
+          <p class="card__sub">Este cliente nunca ha tenido una membresía Club Alan.</p>
+        }
+
+        <div class="card__actions">
+          <button type="button" class="alan-btn alan-btn--green" [disabled]="procesando() || (membresia()?.activa ?? false)" (click)="activar()">Activar membresía</button>
+          <button type="button" class="alan-btn alan-btn--chile" [disabled]="procesando() || !(membresia()?.activa ?? false)" (click)="cancelar()">Cancelar membresía</button>
+        </div>
+      </section>
+
+      <aside class="adm-card adm-card--ink adm-side">
+        <h3>Beneficios del Club</h3>
+        <ul class="benefits">
+          @for (b of beneficios; track b) {
+            <li><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>{{ b }}</li>
+          }
+        </ul>
+      </aside>
+    </div>
+  } @else {
+    <div class="adm-card"><p class="adm-empty">Escribe al menos 2 letras para buscar un cliente.</p></div>
+  }
+</div>

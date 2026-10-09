@@ -1,0 +1,62 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Movimientos de puntos</h2>
+      <p>Historial de acumulación y canje de puntos de un cliente.</p>
+    </div>
+  </header>
+
+  <app-cliente-search (clienteSeleccionado)="onClienteSeleccionado($event)" />
+
+  @if (cargando()) {
+    <p class="adm-empty">Cargando movimientos…</p>
+  } @else if (buscado() && movimientos().length === 0) {
+    <div class="adm-card"><p class="adm-empty">Este cliente no tiene movimientos registrados.</p></div>
+  } @else if (movimientos().length > 0) {
+    <section class="adm-kpis">
+      <div class="adm-kpi"><span>Saldo actual</span><b>{{ saldo() ?? '—' }}</b></div>
+      <div class="adm-kpi"><span>Acumulado (página)</span><b>+{{ acumulado() }}</b></div>
+      <div class="adm-kpi"><span>Canjeado (página)</span><b>−{{ canjeado() }}</b></div>
+    </section>
+
+    <section class="adm-card">
+      <div class="adm-chips" role="group" aria-label="Tipo de movimiento">
+        @for (f of filtros; track f.valor) {
+          <button type="button" class="adm-chip" [class.is-active]="filtro() === f.valor" [attr.aria-pressed]="filtro() === f.valor" (click)="filtro.set(f.valor)">{{ f.etiqueta }}</button>
+        }
+      </div>
+
+      <div class="adm-table">
+        <div class="adm-table__inner" style="--cols: 130px 90px 90px 90px 160px minmax(0, 1fr)">
+          <div class="adm-row adm-row--head">
+            <span>Tipo</span><span>Puntos</span><span>Saldo</span><span>Pedido</span><span>Fecha</span><span>Descripción</span>
+          </div>
+          @for (m of visibles(); track m.idMovimiento) {
+            <div class="adm-row">
+              <span class="adm-tag" [class.adm-tag--green]="m.tipo === 'ACUMULACION'" [class.adm-tag--chile]="m.tipo === 'CANJE'">
+                {{ m.tipo === 'CANJE' ? 'Canje' : 'Acumulación' }}
+              </span>
+              <b [class.neg]="m.puntos < 0">{{ m.puntos > 0 ? '+' : '' }}{{ m.puntos }}</b>
+              <span>{{ m.saldoActual ?? '—' }}</span>
+              <span>{{ m.idPedido ? '#' + m.idPedido : '—' }}</span>
+              <span>{{ m.fecha | date: 'd MMM y, HH:mm' }}</span>
+              <span>{{ m.descripcion || '—' }}</span>
+            </div>
+          } @empty {
+            <p class="adm-empty">No hay movimientos de este tipo en la página actual.</p>
+          }
+        </div>
+      </div>
+
+      <mat-paginator
+        [length]="totalElements()"
+        [pageIndex]="pageIndex()"
+        [pageSize]="pageSize()"
+        [pageSizeOptions]="[5, 10, 25]"
+        (page)="cambiarPagina($event)"
+      />
+    </section>
+  } @else {
+    <div class="adm-card"><p class="adm-empty">Escribe al menos 2 letras para buscar un cliente.</p></div>
+  }
+</div>

@@ -1,0 +1,129 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  font-family: var(--alan-font);
+  color: var(--alan-ink);
+  background: var(--alan-cream);
+}
+
+.shell {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100vh;
+}
+
+.side {
+  flex: 1 1 260px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 28px 20px;
+  background: var(--alan-ink);
+  color: var(--alan-cream);
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px;
+    color: var(--alan-mustard);
+    text-decoration: none;
+  }
+
+  &__emblem {
+    width: 48px;
+    height: 48px;
+    border-color: var(--alan-mustard);
+  }
+
+  &__name {
+    font-family: var(--alan-display);
+    font-size: 20px;
+    line-height: 1.05;
+  }
+
+  &__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__nav a,
+  &__logout {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: inherit;
+    font: 700 16px var(--alan-font);
+    text-decoration: none;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba(255, 244, 220, 0.12);
+    }
+  }
+
+  &__nav a.is-active {
+    background: var(--alan-mustard);
+    color: var(--alan-ink);
+  }
+
+  &__user {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 24px;
+    border-top: 2px dashed rgba(255, 244, 220, 0.25);
+  }
+
+  &__me {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px;
+
+    b {
+      display: block;
+    }
+
+    small {
+      color: #cfc6b0;
+      font-size: 13px;
+    }
+  }
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--alan-green);
+    font-weight: 700;
+  }
+
+  &__logout {
+    color: #ffb4a8;
+  }
+}
+
+.main {
+  flex: 999 1 560px;
+  min-width: 0;
+  padding: 40px 48px;
+}
+
+@media (max-width: 720px) {
+  .main {
+    padding: 28px 20px;
+  }
+}

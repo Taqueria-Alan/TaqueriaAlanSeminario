@@ -1,0 +1,78 @@
+<div class="adm-page">
+  <header class="adm-head">
+    <div>
+      <h2>Pedidos</h2>
+      <p>Revisa, filtra y avanza los pedidos de tus clientes.</p>
+    </div>
+  </header>
+
+  <div class="filters">
+    <div class="adm-chips" role="group" aria-label="Estado">
+      @for (f of filtrosEstado(); track f.valor) {
+        <button type="button" class="adm-chip" [class.is-active]="estado() === f.valor" [attr.aria-pressed]="estado() === f.valor" (click)="estado.set(f.valor)">
+          {{ f.etiqueta }} <small>{{ f.cantidad }}</small>
+        </button>
+      }
+    </div>
+    <div class="adm-chips" role="group" aria-label="Periodo">
+      @for (p of periodos; track p.valor) {
+        <button type="button" class="adm-chip" [class.is-active]="periodo() === p.valor" [attr.aria-pressed]="periodo() === p.valor" (click)="periodo.set(p.valor)">
+          {{ p.etiqueta }}
+        </button>
+      }
+    </div>
+    <label class="adm-search">
+      <span class="material-symbols-outlined" aria-hidden="true">search</span>
+      <input type="search" placeholder="Buscar por cliente o número" aria-label="Buscar pedido" [value]="busqueda()" (input)="buscar($any($event.target).value)" />
+    </label>
+  </div>
+
+  <section class="adm-card">
+    <div class="adm-table">
+      <div class="adm-table__inner" style="--cols: 70px 80px minmax(0, 1fr) minmax(0, 2fr) 80px 130px 130px">
+        <div class="adm-row adm-row--head">
+          <span>N.º</span><span>Hora</span><span>Cliente</span><span>Artículos</span><span>Total</span><span>Estado</span><span></span>
+        </div>
+        @for (p of lista(); track p.id) {
+          <div class="adm-row adm-row--click" [class.is-selected]="seleccionadoId() === p.id" tabindex="0" role="button" [attr.aria-expanded]="seleccionadoId() === p.id" (click)="alternar(p.id)" (keydown.enter)="alternar(p.id)">
+            <b>#{{ p.id }}</b>
+            <span>{{ fecha(p.creadoEn) }}</span>
+            <span>{{ p.cliente }}<small>{{ tipoDe(p) }}</small></span>
+            <span>{{ resumen(p.lineas) }}</span>
+            <b>Q{{ p.total }}</b>
+            <span class="adm-tag {{ claseEstado[p.estado] }}">{{ etiquetaEstado[p.estado] }}</span>
+            @if (accionDe(p)) {
+              <button type="button" class="alan-btn alan-btn--green act" (click)="avanzar(p, $event)">{{ accionDe(p) }}</button>
+            } @else {
+              <span></span>
+            }
+          </div>
+          @if (seleccionadoId() === p.id) {
+            <div class="detail">
+              <div class="detail__col">
+                <h3>Pedido #{{ p.id }}</h3>
+                <p class="detail__meta">{{ p.cliente }} · {{ tipoDe(p) }} · {{ fecha(p.creadoEn) }}</p>
+                @if (p.direccion) {
+                  <p class="detail__meta"><span class="material-symbols-outlined" aria-hidden="true">location_on</span>{{ p.direccion }}</p>
+                }
+                <ul class="detail__lines">
+                  @for (l of p.lineas; track l.idProducto) {
+                    <li><span><b>{{ l.cantidad }} × {{ l.nombre }}</b><small>{{ l.detalle }}</small></span><b>Q{{ l.precio * l.cantidad }}</b></li>
+                  }
+                </ul>
+                <div class="detail__total"><span>Total</span><strong>Q{{ p.total }}</strong></div>
+              </div>
+              <ol class="timeline" aria-label="Avance del pedido">
+                @for (e of etapas(); track e.etiqueta) {
+                  <li class="timeline__item timeline__item--{{ e.situacion }}"><span class="timeline__dot"></span>{{ e.etiqueta }}</li>
+                }
+              </ol>
+            </div>
+          }
+        } @empty {
+          <p class="adm-empty">No hay pedidos con estos filtros.</p>
+        }
+      </div>
+    </div>
+  </section>
+</div>

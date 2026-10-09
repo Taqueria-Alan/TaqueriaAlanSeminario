@@ -1,0 +1,31 @@
+<label class="adm-search cliente-search">
+  <span class="material-symbols-outlined" aria-hidden="true">search</span>
+  <input
+    type="search"
+    autocomplete="off"
+    [formControl]="control"
+    [matAutocomplete]="auto"
+    placeholder="Buscar cliente por nombre o teléfono"
+    aria-label="Buscar cliente por nombre o teléfono"
+  />
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    class="cliente-search__panel"
+    [displayWith]="mostrarCliente"
+    (optionSelected)="onOpcionSeleccionada($event)"
+  >
+    @for (cliente of opciones$ | async; track cliente.idCliente) {
+      <mat-option [value]="cliente">
+        <span class="opcion">
+          <span class="opcion__nombre">{{ cliente.nombre }}</span>
+          @if (cliente.telefono) {
+            <small>{{ cliente.telefono }}</small>
+          }
+          <span class="adm-tag" [class.adm-tag--green]="cliente.miembroClub">
+            {{ cliente.miembroClub ? 'Miembro' : 'Sin membresía' }} · {{ cliente.puntos }} pts
+          </span>
+        </span>
+      </mat-option>
+    }
+  </mat-autocomplete>
+</label>

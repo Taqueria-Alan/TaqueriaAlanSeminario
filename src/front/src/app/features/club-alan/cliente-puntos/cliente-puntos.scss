@@ -1,0 +1,62 @@
+.saldo {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px 32px;
+  max-width: 880px;
+
+  &__coin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 96px;
+    height: 96px;
+    border: 4px solid var(--alan-ink);
+    border-radius: 50%;
+    background: var(--alan-mustard);
+    color: var(--alan-ink);
+
+    .material-symbols-outlined {
+      font-size: 48px;
+    }
+  }
+
+  &__body {
+    flex: 1 1 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__kicker {
+    color: var(--alan-mustard);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  &__pts {
+    margin: 0;
+    font-family: var(--alan-display);
+    font-size: 64px;
+    line-height: 1;
+
+    small {
+      margin-left: 8px;
+      color: #cfc6b0;
+      font-family: var(--alan-font);
+      font-size: 20px;
+    }
+  }
+
+  &__who {
+    margin: 0 0 8px;
+    color: #cfc6b0;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+}

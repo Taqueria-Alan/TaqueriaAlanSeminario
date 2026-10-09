@@ -1,9 +1,8 @@
-"""Smoke tests for the four Taquería Alan services.
+"""Smoke tests for the core Taquería Alan services.
 
-The Jenkins pipeline supplies the URLs through environment variables.  These
-tests deliberately accept application responses such as 401, 403 and 404:
-at this stage they prove that a live HTTP server answered, while a 5xx response
-or a connection failure correctly fails the build.
+The Jenkins pipeline supplies service targets through environment variables.
+An HTTP 4xx is a valid smoke-test response: it proves an application answered
+the request.  A connection error or a 5xx response fails the build.
 """
 
 from __future__ import annotations
@@ -29,7 +28,7 @@ SERVICES = {
 
 
 def http_status(url: str) -> int:
-    """Return an HTTP status even when the application deliberately returns 4xx."""
+    """Return the status even when the service deliberately returns HTTP 4xx."""
     request = urllib.request.Request(url, method="GET", headers={"User-Agent": "taqueria-smoke-test"})
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
@@ -39,15 +38,20 @@ def http_status(url: str) -> int:
 
 
 def chromium_driver() -> webdriver.Chrome:
+    """Create an isolated Chromium Headless instance for the browser checks."""
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1280,720")
-    options.binary_location = os.environ.get(
+
+    browser_binary = os.environ.get(
         "CHROME_BINARY", shutil.which("chromium") or shutil.which("chromium-browser") or ""
     )
+    if browser_binary:
+        options.binary_location = browser_binary
+
     driver_path = os.environ.get("CHROMEDRIVER", shutil.which("chromedriver") or "")
     service = Service(executable_path=driver_path) if driver_path else Service()
     return webdriver.Chrome(service=service, options=options)
@@ -55,7 +59,7 @@ def chromium_driver() -> webdriver.Chrome:
 
 @pytest.mark.parametrize("service_name,url", SERVICES.items())
 def test_service_url_is_configured(service_name: str, url: str) -> None:
-    """Each service target is a complete HTTP URL."""
+    """Each service target must be a complete HTTP URL."""
     parsed = urlparse(url)
     assert parsed.scheme in {"http", "https"}, f"{service_name} has an invalid URL: {url}"
     assert parsed.hostname, f"{service_name} has no host: {url}"
@@ -63,14 +67,14 @@ def test_service_url_is_configured(service_name: str, url: str) -> None:
 
 @pytest.mark.parametrize("service_name,url", SERVICES.items())
 def test_service_answers_http(service_name: str, url: str) -> None:
-    """A reachable service must answer without a server-side failure."""
+    """A reachable service must not return a server-side failure."""
     status = http_status(url)
     assert status < 500, f"{service_name} returned HTTP {status} at {url}"
 
 
 @pytest.mark.parametrize("service_name,url", SERVICES.items())
 def test_service_loads_in_headless_chromium(service_name: str, url: str) -> None:
-    """Exercise the same route through a real headless Chromium browser."""
+    """Exercise the same route through a real Headless Chromium browser."""
     driver = chromium_driver()
     try:
         driver.set_page_load_timeout(15)
@@ -81,7 +85,10 @@ def test_service_loads_in_headless_chromium(service_name: str, url: str) -> None
         driver.quit()
 
 
-@pytest.mark.parametrize("left,right", [("auth", "catalogo"), ("catalogo", "pedidos"), ("pedidos", "pagos")])
+@pytest.mark.parametrize(
+    "left,right",
+    [("auth", "catalogo"), ("catalogo", "pedidos"), ("pedidos", "pagos")],
+)
 def test_service_targets_use_different_ports(left: str, right: str) -> None:
-    """Guard against accidentally testing one service four times."""
+    """Guard against accidentally testing the same service four times."""
     assert urlparse(SERVICES[left]).port != urlparse(SERVICES[right]).port

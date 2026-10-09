@@ -1,0 +1,125 @@
+$color-ink: var(--alan-ink-2);
+$color-ink-dark: var(--alan-ink);
+$color-yellow: var(--alan-mustard);
+$color-cream: var(--alan-cream);
+
+.layout {
+  height: 100vh;
+}
+
+.sidenav {
+  width: 260px;
+  background: $color-ink-dark;
+  color: $color-cream;
+  border-right: 4px solid $color-yellow;
+  --mat-sidenav-container-shape: 0;
+  border-radius: 0;
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 16px;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid rgba(255, 248, 230, 0.12);
+  }
+
+  .brand__logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .brand__text {
+    display: flex;
+    flex-direction: column;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1.25;
+
+    small {
+      font-weight: 400;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      opacity: 0.65;
+    }
+  }
+
+  mat-nav-list {
+    padding-top: 8px;
+
+    --mat-list-list-item-label-text-color: #{$color-cream};
+    --mat-list-list-item-trailing-supporting-text-color: #fff;
+    --mat-list-list-item-hover-label-text-color: #{$color-cream};
+    --mat-list-list-item-focus-label-text-color: #{$color-cream};
+    --mat-list-list-item-leading-icon-color: #{$color-yellow};
+    --mat-list-list-item-hover-leading-icon-color: #{$color-yellow};
+    --mat-list-list-item-hover-state-layer-color: #{$color-yellow};
+    --mat-list-list-item-focus-state-layer-color: #{$color-yellow};
+  }
+
+  .active-link {
+    background-color: rgba(244, 184, 46, 0.2);
+  }
+}
+
+.nav-label {
+  padding: 16px 24px 4px;
+  color: rgba(255, 244, 220, 0.55);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.badge {
+  min-width: 22px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--alan-chile);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.logout-link {
+  --mat-list-list-item-label-text-color: #ffb4a8;
+  --mat-list-list-item-hover-label-text-color: #ffb4a8;
+  --mat-list-list-item-leading-icon-color: #ffb4a8;
+  --mat-list-list-item-hover-leading-icon-color: #ffb4a8;
+}
+
+.app-toolbar {
+  .spacer {
+    flex: 1;
+  }
+
+  &__user {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  background: $color-ink;
+  color: $color-cream;
+  gap: 12px;
+
+  &__logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: contain;
+  }
+}
+
+.contenido {
+  padding: clamp(20px, 4vw, 40px);
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}

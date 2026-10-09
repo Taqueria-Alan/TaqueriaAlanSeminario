@@ -1,0 +1,21 @@
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 24px;
+  }
+}
+
+.paused > span:first-child {
+  opacity: 0.55;
+}
+
+.acts {
+  display: flex;
+  gap: 8px;
+}

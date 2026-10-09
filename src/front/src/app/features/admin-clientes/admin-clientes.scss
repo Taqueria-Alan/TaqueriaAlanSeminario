@@ -1,0 +1,68 @@
+.adm-row.is-active {
+  background: var(--alan-cream);
+  border-radius: 12px;
+}
+
+.cell-truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ficha {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 16px;
+}
+
+.profile {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 20px;
+
+  &__avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    border: 3px solid var(--alan-ink);
+    border-radius: 50%;
+    background: var(--alan-mustard);
+    font-family: var(--alan-display);
+    font-size: 24px;
+  }
+
+  &__who {
+    flex: 1 1 220px;
+
+    h3 {
+      margin: 0;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: var(--alan-muted);
+    }
+  }
+}
+
+.adm-kpi b.small {
+  font-size: 24px;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.neg {
+  color: var(--alan-chile-dark);
+}
