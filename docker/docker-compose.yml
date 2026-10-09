@@ -22,7 +22,12 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-changeme}"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      # La inicialización en un volumen nuevo puede tardar más de los 50 s
+      # que cubrían diez reintentos. Durante este periodo no debe marcarse
+      # el servicio como fallido: las dependencias esperan a que MySQL esté
+      # realmente disponible antes de ejecutar las migraciones.
+      start_period: 90s
+      retries: 20
     networks:
       - taqueria-network
 
