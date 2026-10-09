@@ -27,6 +27,7 @@ Universidad Mariano Gálvez de Guatemala — Seminario.
 │   ├── pedidos-service/
 │   ├── pagos-service/
 │   ├── club-alan-service/
+│   ├── gateway-service/    # API Gateway: unico punto de entrada publico
 │   └── front/              # Frontend Angular
 ├── docker/                 # Dockerfiles por microservicio + docker-compose
 │   ├── auth/Dockerfile
@@ -34,6 +35,7 @@ Universidad Mariano Gálvez de Guatemala — Seminario.
 │   ├── pedidos/Dockerfile
 │   ├── pagos/Dockerfile
 │   ├── club-alan/Dockerfile
+│   ├── gateway/Dockerfile
 │   └── docker-compose.yml
 ├── docs/                   # Documentacion (arquitectura, API, datos)
 └── tests/                  # Pruebas de integracion y end-to-end
@@ -58,6 +60,7 @@ docker compose up --build
 
 | Servicio          | Puerto |
 |--------------------|--------|
+| gateway-service    | 8080   |
 | auth-service       | 8081   |
 | catalogo-service   | 8082   |
 | pedidos-service    | 8083   |
@@ -65,6 +68,12 @@ docker compose up --build
 | club-alan-service  | 8085   |
 | MySQL              | 3306   |
 | Redis              | 6379   |
+
+El front (y cualquier cliente externo) solo deberia hablar con el
+**gateway-service** (puerto 8080): es el unico origen que ve el navegador, lo
+que permite usar una sola cookie de sesion `httpOnly` para los 5 servicios en
+vez de una por cada subdominio. Los puertos 8081-8085 quedan expuestos solo
+para depuracion directa con `curl`.
 
 ## Documentacion
 

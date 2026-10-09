@@ -22,5 +22,6 @@
         <module>src/pedidos-service</module>
         <module>src/pagos-service</module>
         <module>src/club-alan-service</module>
+        <module>src/gateway-service</module>
     </modules>
 </project>

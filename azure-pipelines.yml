@@ -20,6 +20,7 @@ parameters:
       - pedidos-service
       - pagos-service
       - club-alan-service
+      - gateway-service
 
 variables:
   MAVEN_CACHE_FOLDER: $(Pipeline.Workspace)/.m2/repository

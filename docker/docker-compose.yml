@@ -239,6 +239,36 @@ services:
     networks:
       - taqueria-network
 
+  gateway-service:
+    image: taqueria/gateway:${IMAGE_TAG:-local}
+    build:
+      context: ../src/gateway-service
+      dockerfile: ../../docker/gateway/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_started
+      catalogo-service:
+        condition: service_started
+      pedidos-service:
+        condition: service_started
+      pagos-service:
+        condition: service_started
+      club-alan-service:
+        condition: service_started
+    environment:
+      TZ: ${TZ:-America/Guatemala}
+      AUTH_SERVICE_URL: http://auth-service:8081
+      CATALOGO_SERVICE_URL: http://catalogo-service:8082
+      PEDIDOS_SERVICE_URL: http://pedidos-service:8083
+      PAGOS_SERVICE_URL: http://pagos-service:8084
+      CLUB_ALAN_SERVICE_URL: http://club-alan-service:8085
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200}
+    ports:
+      - "${SERVICE_PORT_8080:-8080}:8080"
+    networks:
+      - taqueria-network
+
 volumes:
   mysql-data:
 
