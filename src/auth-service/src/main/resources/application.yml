@@ -13,6 +13,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+    naming:
+         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
   data:
     redis:
       host: ${REDIS_HOST:localhost}
