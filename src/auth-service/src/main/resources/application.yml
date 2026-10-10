@@ -13,6 +13,7 @@ spring:
     hikari:
       data-source-properties:
         sslMode: ${DB_SSL_MODE:REQUIRED}
+        enabledTLSProtocols: TLSv1.2
   jpa:
     hibernate:
       ddl-auto: none
