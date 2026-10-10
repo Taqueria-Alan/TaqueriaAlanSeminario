@@ -41,6 +41,9 @@ public class AuthController {
     @Value("${app.security.cookie-secure:false}")
     private boolean cookieSecure;
 
+    @Value("${app.security.cookie-same-site:Lax}")
+    private String cookieSameSite;
+
     public AuthController(AuthService authService, JwtService jwtService) {
         this.authService = authService;
         this.jwtService = jwtService;
@@ -91,7 +94,7 @@ public class AuthController {
         ResponseCookie borrada = ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -102,7 +105,7 @@ public class AuthController {
         ResponseCookie cookie = ResponseCookie.from(COOKIE_NAME, sesion.token())
                 .httpOnly(true)
                 .secure(cookieSecure)
-                .sameSite("Lax")
+                .sameSite(cookieSameSite)
                 .path("/")
                 .maxAge(authService.duracionTokenSegundos())
                 .build();

@@ -34,3 +34,4 @@ app:
     jwt-secret: ${JWT_SECRET:}
     jwt-expiration-hours: ${JWT_EXPIRATION_HOURS:24}
     cookie-secure: ${COOKIE_SECURE:false}
+    cookie-same-site: ${COOKIE_SAME_SITE:Lax}
