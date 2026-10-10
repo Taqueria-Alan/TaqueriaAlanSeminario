@@ -7,9 +7,12 @@ spring:
   profiles:
     default: local
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?sslMode=${DB_SSL_MODE:REQUIRED}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}}
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:root}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:root}}
+    hikari:
+      data-source-properties:
+        sslMode: ${DB_SSL_MODE:REQUIRED}
   jpa:
     hibernate:
       ddl-auto: none
