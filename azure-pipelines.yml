@@ -35,9 +35,7 @@ stages:
         steps:
           - task: Cache@2
             inputs:
-              key: 'maven | "$(Agent.OS)" | **/pom.xml'
-              restoreKeys: |
-                maven | "$(Agent.OS)"
+              key: 'maven-v2 | "$(Agent.OS)" | **/pom.xml'
               path: $(MAVEN_CACHE_FOLDER)
             displayName: Cache Maven local repository
 
