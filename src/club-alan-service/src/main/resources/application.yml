@@ -7,7 +7,7 @@ spring:
   profiles:
     default: local
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?useSSL=${DB_SSL:true}&requireSSL=${DB_SSL:true}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:taqueria_db}?sslMode=${DB_SSL_MODE:REQUIRED}}
     username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:root}}
     password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:root}}
   jpa:
