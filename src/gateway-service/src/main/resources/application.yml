@@ -13,6 +13,8 @@ spring:
             allowedMethods: GET,POST,PUT,PATCH,DELETE,OPTIONS
             allowedHeaders: '*'
             allowCredentials: true
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin RETAIN_UNIQUE
       routes:
         - id: auth-service
           uri: ${AUTH_SERVICE_URL:http://localhost:8081}
