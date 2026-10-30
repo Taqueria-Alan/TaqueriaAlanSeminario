@@ -110,3 +110,15 @@ para publicar, integrar la revision y configurar el job desde main.
 `jenkins/create-azure-job.groovy` crea el job Taqueria-Azure-Preparacion si no
 existe. No cambia autenticacion ni permisos. Su aplicacion y el primer build
 deben verificarse en la instancia Jenkins local.
+
+## Resultado en Jenkins local
+
+Job: Taqueria-Azure-Preparacion. Build #1: SUCCESS.
+16 pruebas unitarias aprobadas, cero fallos/errores/omisiones.
+Angular compilado y empaquetado en el gateway; seis JAR generados.
+Las seis comprobaciones HTTP a Azure pasaron desde Jenkins.
+La etapa Deploy Azure se omitio porque DEPLOY_AZURE=false.
+Se verificaron los IDs de credenciales, sin leer sus valores: falta azure-taqueria-sp.
+Evidencia sanitizada: docs/jenkins-azure-build-1.json.
+La creacion de un pull request por el conector GitHub sigue devolviendo 403;
+la rama si se publico mediante Git de la computadora autorizada.

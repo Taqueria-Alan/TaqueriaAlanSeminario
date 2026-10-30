@@ -1,0 +1,50 @@
+{
+  "job": "Taqueria-Azure-Preparacion",
+  "build": 1,
+  "result": "SUCCESS",
+  "sourceCommit": "99caaa1",
+  "unitTests": {
+    "tests": 16,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "artifactCount": 6,
+  "gatewayContainsFrontend": true,
+  "azureDeploymentExecuted": false,
+  "httpVerification": {
+    "url": "https://ta-alan-2665-gateway.azurewebsites.net",
+    "checks": [
+      {
+        "path": "/",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "path": "/login",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "path": "/api/auth/me",
+        "status": 401,
+        "passed": true
+      },
+      {
+        "path": "/api/pedidos",
+        "status": 401,
+        "passed": true
+      },
+      {
+        "path": "/api/catalogo/productos",
+        "status": 200,
+        "passed": true
+      },
+      {
+        "path": "/api/unknown",
+        "status": 404,
+        "passed": true
+      }
+    ]
+  }
+}
