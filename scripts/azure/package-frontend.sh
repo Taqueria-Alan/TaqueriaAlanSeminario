@@ -2,7 +2,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 mkdir -p .azure-release/frontend .azure-release/jars
-image="taqueria-frontend-build:${BUILD_NUMBER:-manual}"
+job_key=$(printf '%s' "${JOB_NAME:-manual}" | sha256sum | cut -c1-12)
+image="taqueria-frontend-build:${job_key}-${BUILD_NUMBER:-manual}"
 container=""
 cleanup() {
     if [ -n "$container" ]; then docker rm -f "$container" >/dev/null 2>&1 || true; fi

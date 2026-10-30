@@ -6,6 +6,7 @@ pipeline {
         skipDefaultCheckout(true)
         timeout(time: 45, unit: 'MINUTES')
     }
+    triggers { pollSCM('H/5 * * * *') }
     parameters {
         booleanParam(name: 'DEPLOY_AZURE', defaultValue: false, description: 'Publicar en Azure: requiere main revisada y credencial azure-taqueria-sp')
     }
@@ -34,7 +35,7 @@ pipeline {
             }
         }
         stage('Deploy Azure') {
-            when { allOf { expression { params.DEPLOY_AZURE }; not { changeRequest() } } }
+            when { allOf { expression { params.DEPLOY_AZURE || env.JOB_NAME == 'TaqueriaAzure/Deploy' }; not { changeRequest() } } }
             steps {
                 sh '''
                     set -eu

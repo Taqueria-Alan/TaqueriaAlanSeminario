@@ -122,3 +122,20 @@ Se verificaron los IDs de credenciales, sin leer sus valores: falta azure-taquer
 Evidencia sanitizada: docs/jenkins-azure-build-1.json.
 La creacion de un pull request por el conector GitHub sigue devolviendo 403;
 la rama si se publico mediante Git de la computadora autorizada.
+
+## Activacion del despliegue automatico
+
+Identidad: a453d4a1-8aae-415c-82a8-c15d8271cac1.
+Rol Website Contributor, limitado a rg-taqueria-presentacion.
+Credencial valida hasta 2026-11-06T06:33:08Z (renovar antes de ese momento).
+La transferencia al controlador se cifra con RSA-OAEP-SHA256; la clave privada
+permanece en Jenkins. La credencial azure-taqueria-sp se guarda en la carpeta
+TaqueriaAzure, fuera del alcance del job de preparacion de la raiz.
+
+Job de produccion: TaqueriaAzure/Deploy. Usa main y publica automaticamente
+despues de compilar y aprobar pruebas. Jenkins consulta Git cada cinco minutos
+sin exponer el puerto 9090 a Internet. El equipo y Jenkins deben estar encendidos
+para ejecutar futuras publicaciones; la aplicacion ya desplegada vive en Azure.
+La rama main debe seguir protegida de cambios no revisados.
+No se cambian contrasenas ni variables de las aplicaciones al publicar JARs.
+El primer despliegue real y la validacion posterior deben quedar registrados.
