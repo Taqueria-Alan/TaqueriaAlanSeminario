@@ -1,0 +1,62 @@
+pipeline {
+    agent any
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+        skipDefaultCheckout(true)
+        timeout(time: 45, unit: 'MINUTES')
+    }
+    parameters {
+        booleanParam(name: 'DEPLOY_AZURE', defaultValue: false, description: 'Publicar en Azure: requiere main revisada y credencial azure-taqueria-sp')
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh '''
+                    set -eu
+                    rm -rf reports .azure-release
+                '''
+            }
+        }
+        stage('Build and unit tests') {
+            steps {
+                sh '''
+                    set -eu
+                    mvn -B -ntp clean verify
+                    bash scripts/azure/package-frontend.sh
+                '''
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'src/*-service/target/surefire-reports/TEST-*.xml'
+                }
+            }
+        }
+        stage('Deploy Azure') {
+            when { allOf { expression { params.DEPLOY_AZURE }; not { changeRequest() } } }
+            steps {
+                sh '''
+                    set -eu
+                    test -z "${CHANGE_ID:-}"
+                    git fetch origin refs/heads/main:refs/remotes/origin/main
+                    test "$(git rev-parse HEAD)" = "$(git rev-parse refs/remotes/origin/main)"
+                '''
+                // Configure this credential only in a trusted deployment folder/job.
+                withCredentials([file(credentialsId: 'azure-taqueria-sp', variable: 'AZURE_SP_FILE')]) {
+                    sh 'bash scripts/azure/run-deploy-container.sh'
+                }
+            }
+        }
+        stage('Verify current Azure') {
+            steps {
+                sh 'python3 scripts/azure/verify-readonly.py'
+            }
+        }
+    }
+    post {
+        always {
+            archiveArtifacts artifacts: 'reports/azure-verify.json', allowEmptyArchive: true
+        }
+    }
+}

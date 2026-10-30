@@ -1,0 +1,7 @@
+**
+!src/
+!src/front/
+!src/front/**
+src/front/node_modules
+src/front/dist
+src/front/.angular

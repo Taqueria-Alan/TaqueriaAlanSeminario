@@ -7,3 +7,8 @@ spring:
     redis:
       ssl:
         enabled: ${REDIS_SSL:true}
+
+app:
+  security:
+    cookie-secure: true
+    cookie-same-site: Lax

@@ -24,7 +24,7 @@ pipeline {
                     # En Docker Desktop se construyen de uno en uno para evitar agotar el motor.
                     COMPOSE_PARALLEL_LIMIT=1 IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
                       docker compose -f docker/docker-compose.yml build \
-                      mysql db-migrations auth-service catalogo-service pedidos-service pagos-service club-alan-service
+                      mysql db-migrations auth-service catalogo-service pedidos-service pagos-service club-alan-service gateway-service
                 '''
             }
         }
