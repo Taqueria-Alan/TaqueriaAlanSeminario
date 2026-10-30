@@ -35,7 +35,26 @@ pipeline {
             }
         }
         stage('Deploy Azure') {
-            when { allOf { expression { params.DEPLOY_AZURE || env.JOB_NAME == 'TaqueriaAzure/Deploy' }; not { changeRequest() } } }
+            when {
+                allOf {
+                    not { changeRequest() }
+                    anyOf {
+                        expression { params.DEPLOY_AZURE }
+                        allOf {
+                            expression { env.JOB_NAME == 'TaqueriaAzure/Deploy' }
+                            anyOf {
+                                expression { env.BUILD_NUMBER == '1' }
+                                changeset 'src/**'
+                                changeset 'pom.xml'
+                                changeset 'jenkins/Frontend.Dockerfile*'
+                                changeset 'scripts/azure/package-frontend.sh'
+                                changeset 'scripts/azure/deploy-existing.py'
+                                changeset 'scripts/azure/run-deploy-container.sh'
+                            }
+                        }
+                    }
+                }
+            }
             steps {
                 sh '''
                     set -eu
