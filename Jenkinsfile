@@ -8,6 +8,10 @@ pipeline {
     environment {
         COMPOSE_PROJECT_NAME = 'taqueria-staging'
     }
+    parameters {
+        choice(name: 'SONAR_BACKEND', choices: ['local', 'cloud'], description: 'Servidor de análisis para QA')
+        string(name: 'SONAR_CLOUD_PROJECT', defaultValue: '', trim: true, description: 'Project Key de Taquería Alan en chernandezu, solo para cloud')
+    }
     stages {
         stage('Checkout') {
             steps {
@@ -29,15 +33,15 @@ pipeline {
             }
         }
         stage('Sonar y Quality Gate') {
-            environment {
-                SONAR_HOST_URL = 'http://sonarqube:9000'
-            }
             steps {
-                withCredentials([string(credentialsId: 'sonarqube-taqueria-acs', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                        set +x
-                        mvn -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=taqueria-alan-acs -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
-                    '''
+                script {
+                    def backend = params.SONAR_BACKEND
+                    def credential = backend == 'cloud' ? 'sonarcloud-taqueria-acs' : 'sonarqube-taqueria-acs'
+                    withEnv(["SONAR_BACKEND=${backend}", "SONAR_CLOUD_PROJECT=${params.SONAR_CLOUD_PROJECT ?: ''}"]) {
+                        withCredentials([string(credentialsId: credential, variable: 'SONAR_TOKEN')]) {
+                            sh 'bash qa/acs/run-sonar.sh'
+                        }
+                    }
                 }
             }
         }
