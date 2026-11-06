@@ -49,7 +49,7 @@ pipeline {
                         # CI usa la configuración efímera no productiva definida por Docker Compose.
                         # Las credenciales de producción nunca se incluyen en este pipeline.
                         export MYSQL_DATABASE=taqueria_db MYSQL_USER=taqueria
-                        export MYSQL_PORT=13306 REDIS_PORT=16379
+                        export MYSQL_PORT=13306 REDIS_PORT=16379 SERVICE_PORT_8080=18080
                         export SERVICE_PORT_8081=18081 SERVICE_PORT_8082=18082
                         export SERVICE_PORT_8083=18083 SERVICE_PORT_8084=18084 SERVICE_PORT_8085=18085
                         ci_project="taqueria-ci-${BUILD_NUMBER}"
@@ -98,6 +98,9 @@ pipeline {
                         mkdir -p reports
                         python -m pytest tests/ --junitxml=reports/pytest.xml \
                           --html=reports/report.html --self-contained-html
+                        ci_compose up -d --no-build gateway-service
+                        wait_for_service gateway-service http://gateway-service:8080/api/catalogo/productos
+                        bash qa/acs/run-newman.sh "$ci_network" http://gateway-service:8080
                 '''
             }
             post {
@@ -110,7 +113,7 @@ pipeline {
                         docker compose -p "$ci_project" \
                           -f docker/docker-compose.yml down --volumes --remove-orphans || true
                     '''
-                    junit allowEmptyResults: true, testResults: 'reports/pytest.xml'
+                    junit allowEmptyResults: true, testResults: 'reports/pytest.xml,reports/newman.xml'
                     publishHTML(target: [
                         reportDir: 'reports',
                         reportFiles: 'report.html',

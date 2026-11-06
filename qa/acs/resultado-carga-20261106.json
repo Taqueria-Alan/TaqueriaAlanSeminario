@@ -1,0 +1,33 @@
+{
+  "target": "https://ta-alan-2665-gateway.azurewebsites.net",
+  "profile": "1m 0-50 VU, 5m 50 VU, 30s a 0 VU",
+  "executedAt": "2026-11-06T20:27:00.847Z",
+  "duration_ms": 434899.76568,
+  "routes": {
+    "productos": {
+      "path": "/api/catalogo/productos",
+      "avg_ms": 532.3884228032589,
+      "p95_ms": 366.1190389999999,
+      "requests": 6689,
+      "requests_per_s": 15.380555539139513,
+      "error_pct": 0.7474958887726117,
+      "observed_timeouts": 50
+    },
+    "categorias": {
+      "path": "/api/catalogo/categorias",
+      "avg_ms": 133.53947108239194,
+      "p95_ms": 250.64405159999993,
+      "requests": 6639,
+      "requests_per_s": 15.265586518814057,
+      "error_pct": 0,
+      "observed_timeouts": 0
+    }
+  },
+  "http_requests": {
+    "count": 13330,
+    "rate": 30.65074081876659
+  },
+  "rnf": "Pendiente de comparar con umbrales E1",
+  "error_method": "Tasa observada: timeouts registrados / solicitudes de la ruta. La métrica personalizada no contó las 50 solicitudes interrumpidas y no se usa para el veredicto.",
+  "invalid_response_rate_note": "50 muestras ausentes: 13328 solicitudes etiquetadas y 13278 comprobaciones de cuerpo."
+}

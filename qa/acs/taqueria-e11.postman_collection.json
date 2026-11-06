@@ -1,0 +1,713 @@
+{
+  "info": {
+    "name": "Taquería Alan · E11 · Pedido y pago simulado",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Ejecutar en un ambiente de pruebas. Genera una cuenta sintética y un pedido con pago simulado. No usa credenciales reales."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "allowTestWrites",
+      "value": "false"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 · Invitado sin sesión",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([401]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [], \"properties\": {}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA).to.be.an(\"object\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 · Catálogo disponible",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"idProducto\", \"precio\", \"disponible\"], \"properties\": {\"idProducto\": {\"type\": \"integer\"}, \"precio\": {\"type\": \"number\"}, \"disponible\": {\"type\": \"boolean\"}}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { const p=respuestaQA.find(x=>x.disponible && x.idProducto!==1 && x.precio>0); pm.expect(p,\"producto disponible\").to.exist; pm.collectionVariables.set(\"idProducto\",p.idProducto); pm.collectionVariables.set(\"precio\",p.precio); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/catalogo/productos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "catalogo",
+            "productos"
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 · Categorías disponibles",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"idCategoria\"], \"properties\": {\"idCategoria\": {\"type\": \"integer\"}}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.length).to.be.greaterThan(0); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/catalogo/categorias",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "catalogo",
+            "categorias"
+          ]
+        }
+      }
+    },
+    {
+      "name": "04 · Registro sintético",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if(pm.variables.get(\"allowTestWrites\")!==\"true\") throw new Error(\"Habilita allowTestWrites únicamente en un entorno de prueba autorizado.\");",
+              "const uuid=pm.variables.replaceIn(\"{{$randomUUID}}\");",
+              "pm.collectionVariables.set(\"correoQA\",\"qa-acs-\"+uuid+\"@example.invalid\");",
+              "pm.collectionVariables.set(\"claveQA\",\"Qa!\"+uuid);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"id\", \"email\", \"rol\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"email\": {\"type\": \"string\"}, \"rol\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.rol).to.eql(\"CLIENTE\"); pm.expect(respuestaQA.email).to.eql(pm.collectionVariables.get(\"correoQA\")); pm.collectionVariables.set(\"idCliente\",respuestaQA.id); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/registro",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "registro"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombre\": \"QA Newman ACS\", \"email\": \"{{correoQA}}\", \"telefono\": \"55550000\", \"password\": \"{{claveQA}}\"}"
+        }
+      }
+    },
+    {
+      "name": "05 · Sesión del cliente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"id\", \"rol\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"rol\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.id).to.eql(pm.collectionVariables.get(\"idCliente\")); pm.expect(respuestaQA.rol).to.eql(\"CLIENTE\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "me"
+          ]
+        }
+      }
+    },
+    {
+      "name": "06 · Crear pedido de prueba",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"id\", \"total\", \"estado\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"total\": {\"type\": \"number\"}, \"estado\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.estado).to.eql(\"RECIBIDO\"); pm.expect(respuestaQA.total).to.be.closeTo(Number(pm.collectionVariables.get(\"precio\")),0.01); pm.collectionVariables.set(\"idPedido\",respuestaQA.id); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idCliente\": {{idCliente}}, \"tipo\": \"LLEVAR\", \"lineas\": [{\"idProducto\": {{idProducto}}, \"cantidad\": 1}], \"observaciones\": \"QA ACS Newman: pedido simulado, no preparar\"}"
+        }
+      }
+    },
+    {
+      "name": "07 · Editar cantidades",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"id\", \"total\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"total\": {\"type\": \"number\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.total).to.be.closeTo(2*Number(pm.collectionVariables.get(\"precio\")),0.01); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{idPedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{idPedido}}"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"tipo\": \"LLEVAR\", \"lineas\": [{\"idProducto\": {{idProducto}}, \"cantidad\": 2}], \"observaciones\": \"QA ACS Newman: no preparar\"}"
+        }
+      }
+    },
+    {
+      "name": "08 · Consultar pedido antes de pagar",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"id\", \"estado\"], \"properties\": {\"id\": {\"type\": \"integer\"}, \"estado\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.id).to.eql(pm.collectionVariables.get(\"idPedido\")); pm.expect(respuestaQA.estado).to.eql(\"RECIBIDO\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{idPedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{idPedido}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "09 · Pago simulado rechazado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([422]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"code\"], \"properties\": {\"code\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.code).to.eql(\"FONDOS_INSUFICIENTES\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pagos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pagos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idPedido\": {{idPedido}}, \"metodoPago\": \"TARJETA\", \"numeroTarjetaPrueba\": \"4000000000000002\", \"titular\": \"QA simulacion\", \"idempotencyKey\": \"qa-acs-rechazo-{{idPedido}}\"}"
+        }
+      }
+    },
+    {
+      "name": "10 · Estado intacto tras el rechazo",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"estado\"], \"properties\": {\"estado\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.estado).to.eql(\"RECIBIDO\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{idPedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{idPedido}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "11 · Pago simulado aprobado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"estadoPago\", \"pedidoEstado\"], \"properties\": {\"estadoPago\": {\"type\": \"string\"}, \"pedidoEstado\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.estadoPago).to.eql(\"APROBADO\"); pm.expect(respuestaQA.pedidoEstado).to.eql(\"EN_PREPARACION\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pagos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pagos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idPedido\": {{idPedido}}, \"metodoPago\": \"TARJETA\", \"numeroTarjetaPrueba\": \"4242424242424242\", \"titular\": \"QA simulacion\", \"idempotencyKey\": \"qa-acs-aprobado-{{idPedido}}\"}"
+        }
+      }
+    },
+    {
+      "name": "12 · Reintento idempotente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200, 201]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"idempotente\", \"estadoPago\"], \"properties\": {\"idempotente\": {\"type\": \"boolean\"}, \"estadoPago\": {\"type\": \"string\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.idempotente).to.eql(true); pm.expect(respuestaQA.estadoPago).to.eql(\"APROBADO\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pagos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pagos"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"idPedido\": {{idPedido}}, \"metodoPago\": \"TARJETA\", \"numeroTarjetaPrueba\": \"4242424242424242\", \"titular\": \"QA simulacion\", \"idempotencyKey\": \"qa-acs-aprobado-{{idPedido}}\"}"
+        }
+      }
+    },
+    {
+      "name": "13 · Seguimiento del pedido pagado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([200]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [\"estado\", \"id\"], \"properties\": {\"estado\": {\"type\": \"string\"}, \"id\": {\"type\": \"integer\"}}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA.id).to.eql(pm.collectionVariables.get(\"idPedido\")); pm.expect(respuestaQA.estado).to.eql(\"EN_PREPARACION\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{idPedido}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{idPedido}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "14 · No se cancela un pedido pagado",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([409, 422]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [], \"properties\": {}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA).to.be.an(\"object\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos/{{idPedido}}/cancelar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos",
+            "{{idPedido}}",
+            "cancelar"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"motivo\": \"QA simulacion\"}"
+        }
+      }
+    },
+    {
+      "name": "15 · Cerrar sesión",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([204]).to.include(pm.response.code));",
+              "pm.test('Respuesta sin cuerpo', () => pm.expect(pm.response.text()).to.eql(''));",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "logout"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{}"
+        }
+      }
+    },
+    {
+      "name": "16 · Sesión cerrada no accede a pedidos",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('Código HTTP esperado', () => pm.expect([401]).to.include(pm.response.code));",
+              "pm.test('Esquema JSON', () => pm.response.to.have.jsonSchema({\"type\": \"object\", \"required\": [], \"properties\": {}}));",
+              "const respuestaQA = pm.response.json();",
+              "pm.test('Contenido de negocio', () => { pm.expect(respuestaQA).to.be.an(\"object\"); });",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/pedidos",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "pedidos"
+          ]
+        }
+      }
+    }
+  ]
+}
