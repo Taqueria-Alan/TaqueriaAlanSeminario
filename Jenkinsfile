@@ -9,8 +9,8 @@ pipeline {
         COMPOSE_PROJECT_NAME = 'taqueria-staging'
     }
     parameters {
-        choice(name: 'SONAR_BACKEND', choices: ['local', 'cloud'], description: 'Servidor de análisis para QA')
-        string(name: 'SONAR_CLOUD_PROJECT', defaultValue: '', trim: true, description: 'Project Key de Taquería Alan en chernandezu, solo para cloud')
+        choice(name: 'SONAR_BACKEND', choices: ['cloud', 'local'], description: 'Servidor de análisis para QA')
+        string(name: 'SONAR_CLOUD_PROJECT', defaultValue: 'chernandezu_taqueria-alan', trim: true, description: 'Project Key de Taquería Alan en chernandezu, solo para cloud')
     }
     stages {
         stage('Checkout') {
@@ -24,11 +24,6 @@ pipeline {
                 sh '''
                     set -eu
                     bash qa/acs/pipeline-unit.sh
-                    # Los microservicios Java consumen bastante memoria al resolver Maven.
-                    # En Docker Desktop se construyen de uno en uno para evitar agotar el motor.
-                    COMPOSE_PARALLEL_LIMIT=1 IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
-                      docker compose -f docker/docker-compose.yml build \
-                      mysql db-migrations auth-service catalogo-service pedidos-service pagos-service club-alan-service gateway-service
                 '''
             }
         }
@@ -43,6 +38,18 @@ pipeline {
                         }
                     }
                 }
+            }
+        }
+        stage('Build images for QA') {
+            steps {
+                sh '''
+                    set -eu
+                    # Los microservicios Java consumen bastante memoria al resolver Maven.
+                    # En Docker Desktop se construyen de uno en uno para evitar agotar el motor.
+                    JWT_SECRET=unused-for-image-build COMPOSE_PARALLEL_LIMIT=1 IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
+                      docker compose -f docker/docker-compose.yml build \
+                      mysql db-migrations auth-service catalogo-service pedidos-service pagos-service club-alan-service gateway-service
+                '''
             }
         }
         stage('Test') {
@@ -65,6 +72,10 @@ pipeline {
                         # CI usa la configuración efímera no productiva definida por Docker Compose.
                         # Las credenciales de producción nunca se incluyen en este pipeline.
                         export MYSQL_DATABASE=taqueria_db MYSQL_USER=taqueria
+                        set +x
+                        JWT_SECRET=$(python3 -c 'import secrets; print(secrets.token_urlsafe(48))')
+                        export JWT_SECRET
+                        set -x
                         export MYSQL_PORT=13306 REDIS_PORT=16379 SERVICE_PORT_8080=18080
                         export SERVICE_PORT_8081=18081 SERVICE_PORT_8082=18082
                         export SERVICE_PORT_8083=18083 SERVICE_PORT_8084=18084 SERVICE_PORT_8085=18085
