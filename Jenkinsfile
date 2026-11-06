@@ -12,20 +12,33 @@ pipeline {
         stage('Checkout') {
             steps {
                 checkout scm
-                sh 'git rev-parse --short HEAD'
+                sh 'git rev-parse --short HEAD && rm -rf reports && mkdir -p reports'
             }
         }
         stage('Build') {
             steps {
                 sh '''
                     set -eu
-                    mvn -B -ntp clean verify
+                    bash qa/acs/pipeline-unit.sh
                     # Los microservicios Java consumen bastante memoria al resolver Maven.
                     # En Docker Desktop se construyen de uno en uno para evitar agotar el motor.
                     COMPOSE_PARALLEL_LIMIT=1 IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}" \
                       docker compose -f docker/docker-compose.yml build \
                       mysql db-migrations auth-service catalogo-service pedidos-service pagos-service club-alan-service gateway-service
                 '''
+            }
+        }
+        stage('Sonar y Quality Gate') {
+            environment {
+                SONAR_HOST_URL = 'http://sonarqube:9000'
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonarqube-taqueria-acs', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        set +x
+                        mvn -B -ntp org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar -Dsonar.projectKey=taqueria-alan-acs -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
+                    '''
+                }
             }
         }
         stage('Test') {
@@ -44,7 +57,6 @@ pipeline {
                         set -eu
                         export IMAGE_TAG="$(git rev-parse --short HEAD)-${BUILD_NUMBER}"
                         # No reutilizar evidencia ignorada de ejecuciones anteriores.
-                        rm -rf reports
                         mkdir -p reports
                         # CI usa la configuración efímera no productiva definida por Docker Compose.
                         # Las credenciales de producción nunca se incluyen en este pipeline.
@@ -151,7 +163,8 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: 'reports/*', allowEmptyArchive: true
+            junit allowEmptyResults: true, testResults: 'src/*-service/target/surefire-reports/TEST-*.xml,reports/vitest.xml'
+            archiveArtifacts artifacts: 'reports/*,src/*-service/target/site/jacoco/jacoco.xml', allowEmptyArchive: true
         }
     }
 }
